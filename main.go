@@ -49,7 +49,7 @@ func main() {
 		CommandPrefix: "/",
 		SuperUsers:    []string{"517671982"}, // 必须修改，否则无权限
 		Driver: []zero.Driver{
-			driver.NewWebSocketClient("ws://127.0.0.1:6700/", ""),
+			driver.NewWebSocketClient("ws://127.0.0.1:6700/ws/", ""),
 		},
 	})
 	// 帮助
