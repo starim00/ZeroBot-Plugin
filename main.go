@@ -19,7 +19,7 @@ import (
 	// 实用类
 	_ "github.com/Yiwen-Chan/ZeroBot-Plugin/github"  // 搜索GitHub仓库
 	_ "github.com/Yiwen-Chan/ZeroBot-Plugin/manager" // 群管
-	_ "github.com/Yiwen-Chan/ZeroBot-Plugin/runcode" // 在线运行代码
+	//_ "github.com/Yiwen-Chan/ZeroBot-Plugin/runcode" // 在线运行代码
 
 	// 娱乐类
 	_ "github.com/Yiwen-Chan/ZeroBot-Plugin/music"    // 点歌
