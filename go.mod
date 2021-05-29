@@ -7,6 +7,6 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/sirupsen/logrus v1.8.1
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
-	github.com/tidwall/gjson v1.7.4
+	github.com/tidwall/gjson v1.8.0
 	github.com/wdvxdr1123/ZeroBot v1.2.0
 )
