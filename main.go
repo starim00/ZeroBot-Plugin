@@ -45,7 +45,7 @@ func main() {
 ========================================================
 `) // 启动打印
 	zero.Run(zero.Config{
-		NickName:      []string{"椛椛", "ATRI", "atri", "亚托莉", "アトリ"},
+		NickName:      []string{"寿司", "饭团"},
 		CommandPrefix: "/",
 		SuperUsers:    []string{"517671982"}, // 必须修改，否则无权限
 		Driver: []zero.Driver{
