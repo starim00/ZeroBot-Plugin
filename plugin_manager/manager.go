@@ -3,9 +3,7 @@ package manager
 
 import (
 	"fmt"
-	"io"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
