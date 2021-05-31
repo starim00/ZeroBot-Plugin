@@ -280,7 +280,10 @@ func init() { // 插件主体
 	zero.OnNotice().SetBlock(false).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			if ctx.Event.NoticeType == "group_increase" {
-				ctx.SendChain(message.Text("欢迎~"))
+				ctx.SendChain(message.Text("欢迎新人~"))
+			}
+			if ctx.Event.GroupID == 418438205 {
+				ctx.SendChain(message.Text("豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"))
 			}
 		})
 	// 退群提醒
