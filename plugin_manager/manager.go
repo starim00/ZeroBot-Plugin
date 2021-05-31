@@ -296,39 +296,39 @@ func init() { // 插件主体
 	// 入群欢迎
 	zero.OnNotice().SetBlock(false).FirstPriority().
 		Handle(func(ctx *zero.Ctx) {
-			if ctx.Event.NoticeType == "group_increase" {
-				word, ok := config.Welcome[uint64(ctx.Event.GroupID)]
-				if ok {
-					ctx.Send(word)
-				} else if ok && ctx.Event.GroupID == 418438205 {
-					ctx.SendChain(message.Text("豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"))
-				} else {
-					ctx.Send("欢迎~")
-				}
-				enable, ok1 := config.Checkin[uint64(ctx.Event.GroupID)]
-				if ok1 && enable {
-					uid := ctx.Event.UserID
-					a := rand.Intn(100)
-					b := rand.Intn(100)
-					r := a + b
-					ctx.SendChain(message.At(uid), message.Text(fmt.Sprintf("考你一道题：%d+%d=?\n如果60秒之内答不上来，%s就要把你踢出去了哦~", a, b, zero.BotConfig.NickName[0])))
-					// 匹配发送者进行验证
-					rule := func(ctx *zero.Ctx) bool {
-						for _, elem := range ctx.Event.Message {
-							if elem.Type == "text" {
-								text := strings.ReplaceAll(elem.Data["text"], " ", "")
-								ans, err := strconv.Atoi(text)
-								if err == nil {
-									if ans != r {
-										ctx.Send("答案不对哦，再想想吧~")
-										return false
-									}
-									return true
+		if ctx.Event.NoticeType == "group_increase" {
+			word, ok := config.Welcome[uint64(ctx.Event.GroupID)]
+			if ok {
+				ctx.Send(word)
+			} else if ok && ctx.Event.GroupID == 418438205 {
+				ctx.SendChain(message.Text("豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"))
+			} else {
+				ctx.Send("欢迎~")
+			}
+			enable, ok1 := config.Checkin[uint64(ctx.Event.GroupID)]
+			if ok1 && enable {
+				uid := ctx.Event.UserID
+				a := rand.Intn(100)
+				b := rand.Intn(100)
+				r := a + b
+				ctx.SendChain(message.At(uid), message.Text(fmt.Sprintf("考你一道题：%d+%d=?\n如果60秒之内答不上来，%s就要把你踢出去了哦~", a, b, zero.BotConfig.NickName[0])))
+				// 匹配发送者进行验证
+				rule := func(ctx *zero.Ctx) bool {
+					for _, elem := range ctx.Event.Message {
+						if elem.Type == "text" {
+							text := strings.ReplaceAll(elem.Data["text"], " ", "")
+							ans, err := strconv.Atoi(text)
+							if err == nil {
+								if ans != r {
+									ctx.Send("答案不对哦，再想想吧~")
+									return false
 								}
+								return true
 							}
 						}
-						return false
 					}
+					return false
+				}
 					next := zero.NewFutureEvent("message", 999, false, zero.CheckUser(ctx.Event.UserID), rule)
 					recv, cancel := next.Repeat()
 					select {
@@ -347,7 +347,8 @@ func init() { // 插件主体
 	zero.OnNotice().SetBlock(false).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			if ctx.Event.NoticeType == "group_decrease" {
-				ctx.SendChain(message.Text("有人跑路了~"))
+				nickname := ctx.GetStrangerInfo(ctx.Event.UserID, true).Get("nickname").Str
+				ctx.SendChain(message.Text(nickname + "离开了我们 有缘再会"))
 			}
 		})
 	// 设置欢迎语
