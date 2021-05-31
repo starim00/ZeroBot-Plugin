@@ -406,6 +406,8 @@ func init() { // 插件主体
 			} else {
 				ctx.SendChain(message.Text("出错啦!"))
 			}
+			ctx.SendChain(message.Text(s))
+			return
 		})
 	// 运行 CQ 码
 	zero.OnRegex(`^run(.*)$`, zero.SuperUserPermission).SetBlock(true).SetPriority(0).
