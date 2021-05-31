@@ -3,9 +3,7 @@ package manager
 
 import (
 	"fmt"
-	"io"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -302,6 +300,8 @@ func init() { // 插件主体
 				word, ok := config.Welcome[uint64(ctx.Event.GroupID)]
 				if ok {
 					ctx.Send(word)
+				} else if ok && ctx.Event.GroupID == 418438205 {
+					ctx.SendChain(message.Text("豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"))
 				} else {
 					ctx.Send("欢迎~")
 				}
