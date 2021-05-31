@@ -279,19 +279,21 @@ func init() { // 插件主体
 	// 入群欢迎
 	zero.OnNotice().SetBlock(false).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
+			var s = ""
+			// 入群欢迎
 			if ctx.Event.NoticeType == "group_increase" {
-				ctx.SendChain(message.Text("欢迎新人~"))
+				nickname := ctx.GetGroupMemberInfo(ctx.Event.GroupID, ctx.Event.UserID, false).Get("nickname").Str
+				s += "欢迎新人" + nickname + "~"
+				if ctx.Event.GroupID == 418438205 {
+					s += "\n豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"
+				}
+				// 退群提醒
+			} else if ctx.Event.NoticeType == "group_decrease" {
+				nickname := ctx.GetStrangerInfo(ctx.Event.UserID, true).Get("nickname").Str
+				s += nickname + "离开了我们 有缘再会"
 			}
-			if ctx.Event.GroupID == 418438205 {
-				ctx.SendChain(message.Text("豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"))
-			}
-		})
-	// 退群提醒
-	zero.OnNotice().SetBlock(false).SetPriority(40).
-		Handle(func(ctx *zero.Ctx) {
-			if ctx.Event.NoticeType == "group_decrease" {
-				ctx.SendChain(message.Text("有人跑路了~"))
-			}
+			ctx.SendChain(message.Text(s))
+			return
 		})
 	// 运行 CQ 码
 	zero.OnRegex(`^run(.*)$`, zero.SuperUserPermission).SetBlock(true).SetPriority(0).
