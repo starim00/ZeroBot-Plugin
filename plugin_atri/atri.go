@@ -44,9 +44,9 @@ func init() { // 插件主体
 		})
 	zero.OnKeywordGroup([]string{"喜欢", "爱你", "爱", "suki", "daisuki", "すき", "好き", "贴贴", "老婆", "亲一个", "mua"}, atriSwitch(), atriSleep(), zero.OnlyToMe).SetBlock(true).SetPriority(prio).
 		Handle(func(ctx *zero.Ctx) {
-			if rand.Intn(10) == 0 {
-				ctx.SendChain(randImage("SUKI.jpg", "SUKI1.jpg", "SUKI2.png"))
-			}
+			//if rand.Intn(10) == 0 {
+			ctx.SendChain(randImage("SUKI.jpg", "SUKI1.jpg", "SUKI2.png"))
+			//}
 		})
 	zero.OnKeywordGroup([]string{"草你妈", "操你妈", "脑瘫", "废柴", "fw", "five", "废物", "战斗", "爬", "爪巴", "sb", "SB", "傻B"}, atriSwitch(), atriSleep(), zero.OnlyToMe).SetBlock(true).SetPriority(prio - 1).
 		Handle(func(ctx *zero.Ctx) {
