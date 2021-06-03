@@ -275,12 +275,13 @@ func init() { // 插件主体
 				if ctx.Event.GroupID == 418438205 {
 					s += "\n豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"
 				}
+				ctx.SendChain(message.Text(s))
 				// 退群提醒
 			} else if ctx.Event.NoticeType == "group_decrease" {
 				nickname := ctx.GetStrangerInfo(ctx.Event.UserID, true).Get("nickname").Str
 				s += nickname + "离开了我们 有缘再会"
+				ctx.SendChain(message.Text(s))
 			}
-			ctx.SendChain(message.Text(s))
 			return
 		})
 	// 运行 CQ 码
