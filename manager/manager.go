@@ -273,7 +273,8 @@ func init() { // 插件主体
 				nickname := ctx.GetGroupMemberInfo(ctx.Event.GroupID, ctx.Event.UserID, false).Get("nickname").Str
 				s += "欢迎新人" + nickname + "~"
 				if ctx.Event.GroupID == 418438205 {
-					s += "\n豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"
+					s += "\n进群之后麻烦修改自己的马甲为服务器-游戏名字，方便之后发放装备的时候找人喵～" +
+						"\n豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"
 				}
 				ctx.SendChain(message.Text(s))
 				// 退群提醒
