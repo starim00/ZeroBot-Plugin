@@ -267,18 +267,9 @@ func init() { // 插件主体
 		})
 	zero.OnNotice().SetBlock(false).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			var s = ""
 			// 入群欢迎
-			if ctx.Event.NoticeType == "group_increase" {
-				nickname := ctx.GetGroupMemberInfo(ctx.Event.GroupID, ctx.Event.UserID, false).Get("nickname").Str
-				s += "欢迎新人" + nickname + "~"
-				if ctx.Event.GroupID == 418438205 {
-					s += "\n进群之后麻烦修改自己的马甲为服务器-游戏名字，方便之后发放装备的时候找人喵～" +
-						"\n豆芽的第一个满级职业赠送当前版本生产最好装备一套！请在满级之后私聊联系群主登记"
-				}
-				ctx.SendChain(message.Text(s))
-				// 退群提醒
-			} else if ctx.Event.NoticeType == "group_decrease" {
+			if ctx.Event.NoticeType == "group_decrease" {
+				var s = ""
 				nickname := ctx.GetStrangerInfo(ctx.Event.UserID, true).Get("nickname").Str
 				s += nickname + "离开了我们 有缘再会"
 				ctx.SendChain(message.Text(s))
