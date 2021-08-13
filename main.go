@@ -77,7 +77,7 @@ func main() {
 			&driver.WSClient{
 				// OneBot 正向WS 默认使用 6700 端口
 				Url:         "ws://127.0.0.1:6700",
-				AccessToken: "",
+				AccessToken: "xiaohanhan",
 			},
 		},
 	})
