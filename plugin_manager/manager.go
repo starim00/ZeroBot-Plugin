@@ -303,6 +303,11 @@ func init() { // 插件主体
 			cmd = strings.ReplaceAll(cmd, "&#93;", "]")
 			ctx.Send(cmd)
 		})
+	zero.OnRegex("满级\\S*装备").SetBlock(true).SetPriority(0).Handle(func(ctx *zero.Ctx) {
+		if ctx.Event.GroupID == 418438205 {
+			ctx.SendChain(message.Text("豆芽第一个满级职业装备麻烦私聊群主登记，然后会有人帮你搓。如果群主没回可能是在上班/摸鱼/偷鸡，可以换个时间在私聊戳他"))
+		}
+	})
 }
 
 func strToInt(str string) int64 {
