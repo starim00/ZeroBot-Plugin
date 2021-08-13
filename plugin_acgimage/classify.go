@@ -23,7 +23,7 @@ const (
 var (
 	botpath, _ = os.Getwd()
 	datapath   = botpath + "/data/acgimage/"
-	cacheuri   = "file:///" + datapath + "cache"
+	cacheuri   = "file:/" + datapath + "cache"
 	// r18有一定保护，一般不会发出图片
 	randapi = "&loli=true&r18=true"
 	msgof   = make(map[int64]int64)
