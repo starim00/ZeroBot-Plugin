@@ -21,7 +21,7 @@ const (
 var (
 	botpath, _ = os.Getwd()
 	datapath   = botpath + "/data/acgimage/"
-	cacheuri   = "file://" + datapath + "cache"
+	cacheuri   = "file:///" + datapath + "cache"
 	// r18有一定保护，一般不会发出图片
 	randapi = "&loli=true&r18=true"
 	msgof   = make(map[int64]int64)
@@ -123,7 +123,8 @@ func replyClass(ctx *zero.Ctx, dhash string, class int, noimg bool, lv int64, co
 	} else {
 		comment := message.Text(comment)
 		if !noimg {
-			ctx.SendChain(img, comment)
+			ctx.SendChain(img)
+			ctx.SendChain(comment)
 		} else {
 			ctx.SendChain(message.Reply(ctx.Event.MessageID), comment)
 		}
