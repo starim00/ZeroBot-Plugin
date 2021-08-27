@@ -59,7 +59,6 @@ func init() {
 	})
 	log.SetLevel(log.DebugLevel)
 }
-
 func main() {
 	fmt.Print(
 		"\n======================[ZeroBot-Plugin]======================",
