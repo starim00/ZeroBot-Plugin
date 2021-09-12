@@ -1,7 +1,11 @@
 data/SetuTime/cache
+data/control
 data/SetuTime/search
 data/manager
 data/acgimage
+data/hs
 .idea/
 .DS_Store
 .vscode
+go-zero*
+nohup.out

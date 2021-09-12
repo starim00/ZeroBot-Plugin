@@ -8,16 +8,22 @@ import (
 	// 注：以下插件均可通过前面加 // 注释，注释后停用并不加载插件
 	// 下列插件可与 wdvxdr1123/ZeroBot v1.1.2 以上配合单独使用
 	// 词库类
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_atri" // ATRI词库
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat" // 基础词库
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_atri"      // ATRI词库
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat"      // 基础词库
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_qingyunke" //青云客
 
 	// 实用类
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_github"  // 搜索GitHub仓库
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_manager" // 群管
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_nbnhhsh" // 拼音首字母缩写释义工具
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_runcode" // 在线运行代码
 
 	// 娱乐类
+	_ "github.com/tdf1939/ZeroBot-Plugin-Gif/plugin_gif" // 制图
+
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_false"  // 服务器监控
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_choose"    // 选择困难症帮手
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_hs"        // 炉石
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_minecraft" // MCSManager
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_music"     // 点歌
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_omikuji"   // 浅草寺求签
@@ -44,9 +50,9 @@ import (
 
 var (
 	contents = []string{
-		"* OneBot + ZeroBot + Golang ",
-		"* Version 1.1.0 - 2021-08-06 23:36:29 +0800 CST",
-		"* Copyright © 2020 - 2021  Kanri, DawnNights, Fumiama, Suika",
+		"* OneBot + ZeroBot + Golang",
+		"* Version 1.1.5 - 2021-09-09 20:52:33 +0800 CST",
+		"* Copyright © 2020 - 2021 Kanri, DawnNights, Fumiama, Suika",
 		"* Project: https://github.com/FloatTech/ZeroBot-Plugin",
 	}
 	banner = strings.Join(contents, "\n")
@@ -83,7 +89,7 @@ func main() {
 		},
 	})
 	// 帮助
-	zero.OnFullMatchGroup([]string{"help", "/help", ".help", "菜单", "帮助"}, zero.OnlyToMe).SetBlock(true).SetPriority(999).
+	zero.OnFullMatchGroup([]string{"/help", ".help", "菜单"}, zero.OnlyToMe).SetBlock(true).FirstPriority().
 		Handle(func(ctx *zero.Ctx) {
 			ctx.Send(banner)
 		})

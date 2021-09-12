@@ -9,12 +9,19 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
 
+	"github.com/FloatTech/ZeroBot-Plugin/control"
+
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 func init() { // 插件主体
-	zero.OnFullMatchGroup([]string{"检查身体", "自检", "启动自检", "系统状态"}, zero.AdminPermission).
+	engine := control.Register("aifalse", &control.Options{
+		DisableOnDefault: false,
+		Help: "AIfalse\n" +
+			"- 查询计算机当前活跃度[检查身体|自检|启动自检|系统状态",
+	})
+	engine.OnFullMatchGroup([]string{"检查身体", "自检", "启动自检", "系统状态"}, zero.AdminPermission).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SendChain(message.Text(
 				"* CPU占用率: ", cpuPercent(), "%\n",
