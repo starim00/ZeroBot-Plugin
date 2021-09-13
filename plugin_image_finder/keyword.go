@@ -10,6 +10,8 @@ import (
 
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
+
+	"github.com/FloatTech/ZeroBot-Plugin/control"
 )
 
 type resultjson struct {
@@ -59,7 +61,11 @@ type resultjson struct {
 }
 
 func init() {
-	zero.OnRegex(`^来张 (.*)$`, zero.AdminPermission).
+	control.Register("imgfinder", &control.Options{
+		DisableOnDefault: false,
+		Help: "关键字搜图\n" +
+			"- 来张 [xxx]",
+	}).OnRegex(`^来张 (.*)$`, zero.AdminPermission).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			keyword := ctx.State["regex_matched"].([]string)[1]
 			soutujson := soutuapi(keyword)
