@@ -19,8 +19,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_runcode" // 在线运行代码
 
 	// 娱乐类
-	_ "github.com/tdf1939/ZeroBot-Plugin-Gif/plugin_gif" // 制图
-
+	_ "github.com/FloatTech/ZeroBot-Plugin-Gif"              // 制图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_false"  // 服务器监控
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_choose"    // 选择困难症帮手
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_hs"        // 炉石
@@ -43,7 +42,6 @@ import (
 
 	// 以下为内置依赖，勿动
 	log "github.com/sirupsen/logrus"
-	easy "github.com/t-tomalak/logrus-easy-formatter"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/driver"
 )
@@ -59,10 +57,6 @@ var (
 )
 
 func init() {
-	log.SetFormatter(&easy.Formatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-		LogFormat:       "[zero][%time%][%lvl%]: %msg% \n",
-	})
 	log.SetLevel(log.DebugLevel)
 }
 func main() {
