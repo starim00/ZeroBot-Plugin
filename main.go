@@ -13,7 +13,7 @@ import (
 	// _ "github.com/FloatTech/ZeroBot-Plugin/control/web" // web 后端控制
 
 	// 词库类
-	"github.com/sirupsen/logrus"
+	_ "github.com/sirupsen/logrus"
 
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_atri"      // ATRI词库
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat"      // 基础词库
