@@ -376,7 +376,8 @@ func init() { // 插件主体
 	zero.OnNotice().SetBlock(false).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			if ctx.Event.NoticeType == "group_decrease" {
-				ctx.SendChain(message.Text("有人跑路了~"))
+				nickname := ctx.GetStrangerInfo(ctx.Event.UserID, true).Get("nickname").Str
+				ctx.SendChain(message.Text(nickname + "离开了我们 有缘再会"))
 			}
 		})
 	// 设置欢迎语
@@ -406,7 +407,6 @@ func init() { // 插件主体
 			} else {
 				ctx.SendChain(message.Text("出错啦!"))
 			}
-			ctx.SendChain(message.Text(s))
 			return
 		})
 	// 运行 CQ 码
