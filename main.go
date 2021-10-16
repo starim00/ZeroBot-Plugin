@@ -74,7 +74,7 @@ func init() {
 	w := flag.Bool("w", false, "Enable warning level log and higher.")
 	h := flag.Bool("h", false, "Display this help.")
 	// 直接写死 AccessToken 时，请更改下面第二个参数
-	token = flag.String("t", "", "Set AccessToken of WSClient.")
+	token = flag.String("t", "xiaohanhan", "Set AccessToken of WSClient.")
 	// 直接写死 URL 时，请更改下面第二个参数
 	url = flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
 	flag.Parse()
@@ -109,7 +109,7 @@ func main() {
 		// SuperUsers 某些功能需要主人权限，可通过以下两种方式修改
 		// []string{}：通过代码写死的方式添加主人账号
 		// flag.Args()：通过命令行参数的方式添加主人账号
-		SuperUsers: append([]string{"12345678", "87654321"}, flag.Args()...),
+		SuperUsers: append([]string{"517671982"}, flag.Args()...),
 		Driver: []zero.Driver{
 			driver.NewWebSocketClient(*url, *token),
 		},
