@@ -12,21 +12,21 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/FloatTech/ZeroBot-Plugin?style=flat-square&logo=go)](https://goreportcard.com/report/github.com/github.com/FloatTech/ZeroBot-Plugin)
 [![Badge](https://img.shields.io/badge/onebot-v11-black?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwCAMAAADxPgR5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAxQTFRF////29vbr6+vAAAAk1hCcwAAAAR0Uk5T////AEAqqfQAAAKcSURBVHja7NrbctswDATQXfD//zlpO7FlmwAWIOnOtNaTM5JwDMa8E+PNFz7g3waJ24fviyDPgfhz8fHP39cBcBL9KoJbQUxjA2iYqHL3FAnvzhL4GtVNUcoSZe6eSHizBcK5LL7dBr2AUZlev1ARRHCljzRALIEog6H3U6bCIyqIZdAT0eBuJYaGiJaHSjmkYIZd+qSGWAQnIaz2OArVnX6vrItQvbhZJtVGB5qX9wKqCMkb9W7aexfCO/rwQRBzsDIsYx4AOz0nhAtWu7bqkEQBO0Pr+Ftjt5fFCUEbm0Sbgdu8WSgJ5NgH2iu46R/o1UcBXJsFusWF/QUaz3RwJMEgngfaGGdSxJkE/Yg4lOBryBiMwvAhZrVMUUvwqU7F05b5WLaUIN4M4hRocQQRnEedgsn7TZB3UCpRrIJwQfqvGwsg18EnI2uSVNC8t+0QmMXogvbPg/xk+Mnw/6kW/rraUlvqgmFreAA09xW5t0AFlHrQZ3CsgvZm0FbHNKyBmheBKIF2cCA8A600aHPmFtRB1XvMsJAiza7LpPog0UJwccKdzw8rdf8MyN2ePYF896LC5hTzdZqxb6VNXInaupARLDNBWgI8spq4T0Qb5H4vWfPmHo8OyB1ito+AysNNz0oglj1U955sjUN9d41LnrX2D/u7eRwxyOaOpfyevCWbTgDEoilsOnu7zsKhjRCsnD/QzhdkYLBLXjiK4f3UWmcx2M7PO21CKVTH84638NTplt6JIQH0ZwCNuiWAfvuLhdrcOYPVO9eW3A67l7hZtgaY9GZo9AFc6cryjoeFBIWeU+npnk/nLE0OxCHL1eQsc1IciehjpJv5mqCsjeopaH6r15/MrxNnVhu7tmcslay2gO2Z1QfcfX0JMACG41/u0RrI9QAAAABJRU5ErkJggg==)](https://github.com/howmanybots/onebot)
-[![Badge](https://img.shields.io/badge/zerobot-v1.3.0-black?style=flat-square&logo=go)](https://github.com/wdvxdr1123/ZeroBot)
-[![License](https://img.shields.io/github/license/Yiwen-Chan/OneBot-YaYa.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/FloatTech/ZeroBot-Plugin/master/LICENSE)
+[![Badge](https://img.shields.io/badge/zerobot-v1.4.1-black?style=flat-square&logo=go)](https://github.com/wdvxdr1123/ZeroBot)
+[![License](https://img.shields.io/github/license/FloatTech/ZeroBot-Plugin.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/FloatTech/ZeroBot-Plugin/master/LICENSE)
 [![qq group](https://img.shields.io/badge/group-1048452984-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=QMb7x1mM)
 
 </div>
 
 ## 命令行参数
 ```bash
-zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
+zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
 ```
 - **-h**: 显示帮助
 - **-t token**: 设置`AccessToken`，默认为空
 - **-u url**: 设置`Url`，默认为`ws://127.0.0.1:6700`
 - **-d|w**: 开启 debug | warning 级别及以上日志输出
-- **-g**: 开启 [webgui](https://github.com/FloatTech/bot-manager)
+- **-g 监听地址:端口**: 在 http://监听地址:端口 上开启 [webgui](https://github.com/FloatTech/bot-manager)
 - **qqs**: superusers 的 qq 号
 
 ## 功能
@@ -42,8 +42,10 @@ zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
     - [x] /禁用 xxx (在发送的群/用户禁用xxx)
     - [x] /全局启用 xxx
     - [x] /全局禁用 xxx
+    - [x] /还原 xxx (在发送的群/用户还原xxx的开启状态到初始状态)
     - [x] /用法 xxx
     - [x] /服务列表
+    - [x] @Bot 插件冲突检测 (会在本群发送一条消息并在约 1s 后撤回以检测其它同类 bot 中已启用的插件并禁用)
 - **聊天** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat"`
     - [x] [BOT名字]
     - [x] [戳一戳BOT]
@@ -57,7 +59,7 @@ zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
 - **群管** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_manager"`
     - [x] 禁言[@xxx][分钟]
     - [x] 解除禁言[@xxx]
-    - [x] 我要自闭 [分钟]
+    - [x] 我要自闭|禅定 x [分钟|小时|天]
     - [x] 开启全员禁言
     - [x] 解除全员禁言
     - [x] 升为管理[@xxx]
@@ -74,6 +76,8 @@ zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
     - [x] 在[MM]月[每周|周几]的[hh]点[mm]分时(用[url])提醒大家[xxx]
     - [x] 取消在[MM]月[dd]日的[hh]点[mm]分的提醒
     - [x] 取消在[MM]月[每周|周几]的[hh]点[mm]分的提醒
+    - [x] 在"cron"时(用[url])提醒大家[xxx]
+    - [x] 取消在"cron"的提醒
     - [x] 列出所有提醒
     - [x] 翻牌
     - [x] [开启|关闭]入群验证
@@ -104,17 +108,34 @@ zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
     - [x] 爬[@xxx]
     - [x] 摸[@xxx]
     - [x] 搓[@xxx]
-    - 注：更多指令见项目 --> https://github.com/tdf1939/ZeroBot-Plugin-Gif
+    - 注：更多指令见项目 --> https://github.com/FloatTech/ZeroBot-Plugin-Gif
+- **base16384加解密** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_b14"`
+    - [x] 加密xxx
+    - [x] 解密xxx
+    - [x] 用yyy加密xxx
+    - [x] 用yyy解密xxx
+- **摸鱼** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_moyu"`
+    - [x] 添加摸鱼提醒
+    - [x] 删除摸鱼提醒
 - **涩图** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_setutime"`
     - [x] 来份[涩图/二次元/风景/车万]
     - [x] 添加[涩图/二次元/风景/车万][P站图片ID]
     - [x] 删除[涩图/二次元/风景/车万][P站图片ID]
     - [x] > setu status
+- **本地涩图** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_nativesetu"`
+    - [x] 本地[xxx]
+    - [x] 刷新本地[xxx]
+    - [x] 设置本地setu绝对路径[xxx]
+    - [x] 刷新所有本地setu
+    - [x] 所有本地setu分类
+    - 注：刷新文件夹较慢，请耐心等待刷新完成，会提示“成功”。
 - **lolicon** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_lolicon"`
     - [x] 来份萝莉
 - **搜图** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_saucenao"`
     - [x] 以图搜图|搜索图片|以图识图[图片]
     - [x] 搜图[P站图片ID]
+- **搜番** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_tracemoe"`
+    - [x] 搜番|搜索番剧[图片]
 - **随机图片与AI点评** `github.com/FloatTech/ZeroBot-Plugin/plugin_acgimage`
     - [x] 随机图片(评级大于6的图将私发)
     - [x] 直接随机(无r18检测，务必小心，仅管理可用)
@@ -135,6 +156,10 @@ zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
     - [x] 发大病
     - [x] 教你一篇小作文[作文]
     - [x] [回复]查重
+- **鬼东西** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_wtf"`
+    - [x] 鬼东西列表
+    - [x] 查询鬼东西[序号][@xxx]
+    - 注：由于需要科学，默认注释。
 - **AIfalse** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_false"`
     - [x] 查询计算机当前活跃度 [身体检查]
     - [x] 清理缓存
@@ -160,6 +185,11 @@ zerobot -h -t token -u url [-d|w] [-g] qq1 qq2 qq3 ...
 - **投胎** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_reborn"`
     - [x] reborn
     - 注：本插件来源于[tgbot](https://github.com/YukariChiba/tgbot/blob/main/modules/Reborn.py)
+- **翻译** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_translation"`
+    - [x] >TL 你好
+- **vtb语录** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_vtb_quotation"`
+    - [x] vtb语录
+    - [x] 随机vtb
 - **TODO...**
 
 ## 使用方法

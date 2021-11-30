@@ -11,19 +11,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
-	timer "github.com/FloatTech/ZeroBot-Plugin-Timer"
-
+	"github.com/FloatTech/ZeroBot-Plugin/plugin_manager/timer"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/file"
 	"github.com/FloatTech/ZeroBot-Plugin/utils/math"
 )
 
 const (
-	datapath = "data/manager/"
-	confile  = datapath + "config.pb"
-	hint     = "====群管====\n" +
+	datapath  = "data/manager/"
+	confile   = datapath + "config.pb"
+	timerfile = datapath + "timers.pb"
+	hint      = "====群管====\n" +
 		"- 禁言@QQ 1分钟\n" +
 		"- 解除禁言 @QQ\n" +
 		"- 我要自闭 1分钟\n" +
@@ -42,6 +44,8 @@ const (
 		"- 在MM月[每周|周几]的hh点mm分时(用http://url)提醒大家XXX\n" +
 		"- 取消在MM月dd日的hh点mm分的提醒\n" +
 		"- 取消在MM月[每周|周几]的hh点mm分的提醒\n" +
+		"- 在\"cron\"时(用[url])提醒大家[xxx]\n" +
+		"- 取消在\"cron\"的提醒\n" +
 		"- 列出所有提醒\n" +
 		"- 翻牌\n" +
 		"- 设置欢迎语XXX\n" +
@@ -51,10 +55,15 @@ const (
 var (
 	config Config
 	limit  = rate.NewManager(time.Minute*5, 2)
+	clock  timer.Clock
 )
 
 func init() { // 插件主体
 	loadConfig()
+	go func() {
+		time.Sleep(time.Second + time.Millisecond*time.Duration(rand.Intn(1000)))
+		clock = timer.NewClock(timerfile)
+	}()
 	// 菜单
 	zero.OnFullMatch("群管系统", zero.AdminPermission).SetBlock(true).FirstPriority().
 		Handle(func(ctx *zero.Ctx) {
@@ -166,18 +175,18 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("小黑屋释放成功~"))
 		})
 	// 自闭禁言
-	zero.OnRegex(`^我要自闭.*?(\d+)(.*)`, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	zero.OnRegex(`^(我要自闭|禅定).*?(\d+)(.*)`, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			duration := strToInt(ctx.State["regex_matched"].([]string)[1])
-			switch ctx.State["regex_matched"].([]string)[2] {
-			case "分钟":
-				//
-			case "小时":
+			duration := strToInt(ctx.State["regex_matched"].([]string)[2])
+			switch ctx.State["regex_matched"].([]string)[3] {
+			case "分钟", "min", "mins", "m":
+				break
+			case "小时", "hour", "hours", "h":
 				duration *= 60
-			case "天":
+			case "天", "day", "days", "d":
 				duration *= 60 * 24
 			default:
-				//
+				break
 			}
 			if duration >= 43200 {
 				duration = 43199 // qq禁言最大时长为一个月
@@ -246,45 +255,70 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("📧 --> " + ctx.State["regex_matched"].([]string)[1]))
 		})
 	// 定时提醒
-	zero.OnRegex(`^在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分时(用.+)?提醒大家(.*)`, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	zero.OnRegex(`^在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分时(用.+)?提醒大家(.*)`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			if ctx.Event.GroupID > 0 {
-				dateStrs := ctx.State["regex_matched"].([]string)
-				ts := timer.GetFilledTimeStamp(dateStrs, false)
-				ts.Grpid = uint64(ctx.Event.GroupID)
-				if ts.Enable {
-					go timer.RegisterTimer(ts, true)
-					ctx.SendChain(message.Text("记住了~"))
-				} else {
-					ctx.SendChain(message.Text("参数非法!"))
-				}
+			dateStrs := ctx.State["regex_matched"].([]string)
+			ts := timer.GetFilledTimer(dateStrs, ctx.Event.SelfID, false)
+			if ts.En() {
+				go clock.RegisterTimer(ts, ctx.Event.GroupID, true)
+				ctx.SendChain(message.Text("记住了~"))
+			} else {
+				ctx.SendChain(message.Text("参数非法:" + ts.Alert))
+			}
+		})
+	// 定时 cron 提醒
+	zero.OnRegex(`^在"(.*)"时(用.+)?提醒大家(.*)`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+		Handle(func(ctx *zero.Ctx) {
+			dateStrs := ctx.State["regex_matched"].([]string)
+			var url, alert string
+			switch len(dateStrs) {
+			case 4:
+				url = dateStrs[2]
+				alert = dateStrs[3]
+			case 3:
+				alert = dateStrs[2]
+			default:
+				ctx.SendChain(message.Text("参数非法!"))
+				return
+			}
+			logrus.Debugln("[manager] cron:", dateStrs[1])
+			ts := timer.GetFilledCronTimer(dateStrs[1], alert, url, ctx.Event.SelfID)
+			if clock.RegisterTimer(ts, ctx.Event.GroupID, true) {
+				ctx.SendChain(message.Text("记住了~"))
+			} else {
+				ctx.SendChain(message.Text("参数非法:" + ts.Alert))
 			}
 		})
 	// 取消定时
-	zero.OnRegex(`^取消在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分的提醒`, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	zero.OnRegex(`^取消在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分的提醒`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			if ctx.Event.GroupID > 0 {
-				dateStrs := ctx.State["regex_matched"].([]string)
-				ts := timer.GetFilledTimeStamp(dateStrs, true)
-				ts.Grpid = uint64(ctx.Event.GroupID)
-				ti := timer.GetTimerInfo(ts)
-				t, ok := (*timer.Timers)[ti]
-				if ok {
-					t.Enable = false
-					delete(*timer.Timers, ti) // 避免重复取消
-					_ = timer.SaveTimers()
-					ctx.SendChain(message.Text("取消成功~"))
-				} else {
-					ctx.SendChain(message.Text("没有这个定时器哦~"))
-				}
+			dateStrs := ctx.State["regex_matched"].([]string)
+			ts := timer.GetFilledTimer(dateStrs, ctx.Event.SelfID, true)
+			ti := ts.GetTimerInfo(ctx.Event.GroupID)
+			ok := clock.CancelTimer(ti)
+			if ok {
+				ctx.SendChain(message.Text("取消成功~"))
+			} else {
+				ctx.SendChain(message.Text("没有这个定时器哦~"))
+			}
+		})
+	// 取消 cron 定时
+	zero.OnRegex(`^取消在"(.*)"的提醒`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+		Handle(func(ctx *zero.Ctx) {
+			dateStrs := ctx.State["regex_matched"].([]string)
+			ts := timer.Timer{Cron: dateStrs[1]}
+			ti := ts.GetTimerInfo(ctx.Event.GroupID)
+			ok := clock.CancelTimer(ti)
+			if ok {
+				ctx.SendChain(message.Text("取消成功~"))
+			} else {
+				ctx.SendChain(message.Text("没有这个定时器哦~"))
 			}
 		})
 	// 列出本群所有定时
-	zero.OnFullMatch("列出所有提醒", zero.AdminPermission).SetBlock(true).SetPriority(40).
+	zero.OnFullMatch("列出所有提醒", zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			if ctx.Event.GroupID > 0 {
-				ctx.SendChain(message.Text(timer.ListTimers(uint64(ctx.Event.GroupID))))
-			}
+			ctx.SendChain(message.Text(clock.ListTimers(uint64(ctx.Event.GroupID))))
 		})
 	// 随机点名
 	zero.OnFullMatchGroup([]string{"翻牌"}, zero.OnlyGroup).SetBlock(true).SetPriority(40).
@@ -434,7 +468,7 @@ func strToInt(str string) int64 {
 func loadConfig() {
 	mkdirerr := os.MkdirAll(datapath, 0755)
 	if mkdirerr == nil {
-		if _, err := os.Stat(confile); err == nil || os.IsExist(err) {
+		if file.IsExist(confile) {
 			f, err := os.Open(confile)
 			if err == nil {
 				data, err1 := io.ReadAll(f)
@@ -459,7 +493,7 @@ func saveConfig() error {
 	data, err := config.Marshal()
 	if err != nil {
 		return err
-	} else if _, err := os.Stat(datapath); err == nil || os.IsExist(err) {
+	} else if file.IsExist(datapath) {
 		f, err1 := os.OpenFile(confile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 		if err1 != nil {
 			return err1

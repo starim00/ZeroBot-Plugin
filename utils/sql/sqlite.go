@@ -3,10 +3,11 @@ package sql
 
 import (
 	"database/sql"
+	"errors"
 	"reflect"
 	"strings"
 
-	_ "modernc.org/sqlite" // 引入sqlite
+	_ "github.com/logoove/sqlite" // 引入sqlite
 )
 
 // Sqlite 数据库对象
@@ -15,12 +16,33 @@ type Sqlite struct {
 	DBPath string
 }
 
+// Open 打开数据库
+func (db *Sqlite) Open() (err error) {
+	if db.DB == nil {
+		database, err := sql.Open("sqlite3", db.DBPath)
+		if err != nil {
+			return err
+		}
+		db.DB = database
+	}
+	return
+}
+
+// Close 关闭数据库
+func (db *Sqlite) Close() (err error) {
+	if db.DB != nil {
+		err = db.DB.Close()
+		db.DB = nil
+	}
+	return
+}
+
 // Create 生成数据库
 // 默认结构体的第一个元素为主键
 // 返回错误
 func (db *Sqlite) Create(table string, objptr interface{}) (err error) {
 	if db.DB == nil {
-		database, err := sql.Open("sqlite", db.DBPath)
+		database, err := sql.Open("sqlite3", db.DBPath)
 		if err != nil {
 			return err
 		}
@@ -48,17 +70,15 @@ func (db *Sqlite) Create(table string, objptr interface{}) (err error) {
 			cmd = append(cmd, "NULL);")
 		}
 	}
-	if _, err := db.DB.Exec(strings.Join(cmd, " ")); err != nil {
-		return err
-	}
-	return nil
+	_, err = db.DB.Exec(strings.Join(cmd, " ") + ";")
+	return
 }
 
 // Insert 插入数据集
 // 默认结构体的第一个元素为主键
 // 返回错误
-func (db *Sqlite) Insert(table string, objptr interface{}) (err error) {
-	rows, err := db.DB.Query("SELECT * FROM " + table)
+func (db *Sqlite) Insert(table string, objptr interface{}) error {
+	rows, err := db.DB.Query("SELECT * FROM " + table + " limit 1;")
 	if err != nil {
 		return err
 	}
@@ -68,9 +88,9 @@ func (db *Sqlite) Insert(table string, objptr interface{}) (err error) {
 	tags, _ := rows.Columns()
 	rows.Close()
 	var (
-		values = values(objptr)
-		top    = len(tags) - 1
-		cmd    = []string{}
+		vals = values(objptr)
+		top  = len(tags) - 1
+		cmd  = []string{}
 	)
 	cmd = append(cmd, "REPLACE INTO")
 	cmd = append(cmd, table)
@@ -102,27 +122,27 @@ func (db *Sqlite) Insert(table string, objptr interface{}) (err error) {
 			cmd = append(cmd, ")")
 		}
 	}
-	stmt, err := db.DB.Prepare(strings.Join(cmd, " "))
+	stmt, err := db.DB.Prepare(strings.Join(cmd, " ") + ";")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(values...)
+	_, err = stmt.Exec(vals...)
 	if err != nil {
 		return err
 	}
-	return nil
+	return stmt.Close()
 }
 
 // Find 查询数据库
 // condition 可为"WHERE id = 0"
 // 默认字段与结构体元素顺序一致
 // 返回错误
-func (db *Sqlite) Find(table string, objptr interface{}, condition string) (err error) {
+func (db *Sqlite) Find(table string, objptr interface{}, condition string) error {
 	var cmd = []string{}
 	cmd = append(cmd, "SELECT * FROM ")
 	cmd = append(cmd, table)
 	cmd = append(cmd, condition)
-	rows, err := db.DB.Query(strings.Join(cmd, " "))
+	rows, err := db.DB.Query(strings.Join(cmd, " ") + ";")
 	if err != nil {
 		return err
 	}
@@ -131,16 +151,22 @@ func (db *Sqlite) Find(table string, objptr interface{}, condition string) (err 
 	}
 	defer rows.Close()
 
+	if !rows.Next() {
+		return errors.New("sql.Find: null result")
+	}
+	err = rows.Scan(addrs(objptr)...)
 	for rows.Next() {
 		if err != nil {
 			return err
 		}
 		err = rows.Scan(addrs(objptr)...)
-		if err != nil {
-			return err
-		}
 	}
-	return nil
+	return err
+}
+
+// Pick 从 table 随机一行
+func (db *Sqlite) Pick(table string, objptr interface{}) error {
+	return db.Find(table, objptr, "ORDER BY RANDOM() limit 1")
 }
 
 // ListTables 列出所有表名
@@ -168,15 +194,15 @@ func (db *Sqlite) ListTables() (s []string, err error) {
 	return
 }
 
-// Del 删除数据库
+// Del 删除数据库表项
 // condition 可为"WHERE id = 0"
 // 返回错误
-func (db *Sqlite) Del(table string, condition string) (err error) {
+func (db *Sqlite) Del(table string, condition string) error {
 	var cmd = []string{}
 	cmd = append(cmd, "DELETE FROM")
 	cmd = append(cmd, table)
 	cmd = append(cmd, condition)
-	stmt, err := db.DB.Prepare(strings.Join(cmd, " "))
+	stmt, err := db.DB.Prepare(strings.Join(cmd, " ") + ";")
 	if err != nil {
 		return err
 	}
@@ -184,26 +210,42 @@ func (db *Sqlite) Del(table string, condition string) (err error) {
 	if err != nil {
 		return err
 	}
-	return nil
+	return stmt.Close()
+}
+
+// Truncate 清空数据库表
+func (db *Sqlite) Truncate(table string) error {
+	var cmd = []string{}
+	cmd = append(cmd, "TRUNCATE TABLE")
+	cmd = append(cmd, table)
+	stmt, err := db.DB.Prepare(strings.Join(cmd, " ") + ";")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+	return stmt.Close()
 }
 
 // Count 查询数据库行数
 // 返回行数以及错误
 func (db *Sqlite) Count(table string) (num int, err error) {
 	var cmd = []string{}
-	cmd = append(cmd, "SELECT * FROM")
+	cmd = append(cmd, "SELECT COUNT(1) FROM")
 	cmd = append(cmd, table)
-	rows, err := db.DB.Query(strings.Join(cmd, " "))
+	rows, err := db.DB.Query(strings.Join(cmd, " ") + ";")
 	if err != nil {
 		return num, err
 	}
 	if rows.Err() != nil {
 		return num, rows.Err()
 	}
-	defer rows.Close()
-	for rows.Next() {
-		num++
+	if rows.Next() {
+		rows.Scan(&num)
 	}
+	rows.Close()
 	return num, nil
 }
 
@@ -231,8 +273,22 @@ func kinds(objptr interface{}) []string {
 	}
 	for i, flen := 0, elem.Type().NumField(); i < flen; i++ {
 		switch elem.Field(i).Type().String() {
-		case "int64":
+		case "int8":
+			kinds = append(kinds, "TINYINT")
+		case "uint8", "byte":
+			kinds = append(kinds, "UNSIGNED TINYINT")
+		case "int16":
+			kinds = append(kinds, "SMALLINT")
+		case "uint16":
+			kinds = append(kinds, "UNSIGNED SMALLINT")
+		case "int32":
 			kinds = append(kinds, "INT")
+		case "uint32":
+			kinds = append(kinds, "UNSIGNED INT")
+		case "int64":
+			kinds = append(kinds, "BIGINT")
+		case "uint64":
+			kinds = append(kinds, "UNSIGNED BIGINT")
 		case "string":
 			kinds = append(kinds, "TEXT")
 		default:
@@ -251,14 +307,7 @@ func values(objptr interface{}) []interface{} {
 		elem = elem.Field(0)
 	}
 	for i, flen := 0, elem.Type().NumField(); i < flen; i++ {
-		switch elem.Field(i).Type().String() {
-		case "int64":
-			values = append(values, elem.Field(i).Int())
-		case "string":
-			values = append(values, elem.Field(i).String())
-		default:
-			values = append(values, elem.Field(i).String())
-		}
+		values = append(values, elem.Field(i).Interface())
 	}
 	return values
 }

@@ -3,16 +3,18 @@ package acgimage
 
 import (
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/FloatTech/AnimeAPI/classify"
 	"github.com/FloatTech/AnimeAPI/picture"
 	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
 	"github.com/FloatTech/ZeroBot-Plugin/control"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/file"
 )
 
 const (
@@ -21,13 +23,13 @@ const (
 )
 
 var (
-	botpath, _ = os.Getwd()
-	datapath   = botpath + "/data/acgimage/"
-	cacheuri   = "file:///" + datapath + "cache"
+	datapath = file.BOT_PATH + "/data/acgimage/"
+	cacheuri = "file:///" + datapath + "cache"
 	// r18有一定保护，一般不会发出图片
 	randapi = "&loli=true&r18=true"
 	msgof   = make(map[int64]int64)
 	block   = false
+	limit   = rate.NewManager(time.Minute, 5)
 )
 
 func init() { // 插件主体
@@ -55,7 +57,7 @@ func init() { // 插件主体
 	// 有保护的随机图片
 	engine.OnFullMatch("随机图片", zero.OnlyGroup).SetBlock(true).SetPriority(24).
 		Handle(func(ctx *zero.Ctx) {
-			if classify.CanVisit(5) {
+			if classify.CanVisit(5) && limit.Load(ctx.Event.UserID).Acquire() {
 				go func() {
 					class, lastvisit, dhash, comment := classify.Classify(randapi, false)
 					replyClass(ctx, dhash, class, false, lastvisit, comment)
@@ -126,7 +128,7 @@ func replyClass(ctx *zero.Ctx, dhash string, class int, noimg bool, lv int64, co
 			if err3 == nil {
 				ctx.SendChain(message.Text(comment + "\n给你点提示哦：" + b14))
 				ctx.Event.GroupID = 0
-				ctx.SendChain(message.Text(img))
+				ctx.SendChain(img)
 			}
 		} else {
 			ctx.SendChain(message.Text(comment))

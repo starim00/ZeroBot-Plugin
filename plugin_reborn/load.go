@@ -5,10 +5,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
 
 	wr "github.com/mroth/weightedrand"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/FloatTech/ZeroBot-Plugin/utils/file"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/process"
 )
 
 const (
@@ -28,7 +30,7 @@ var (
 
 func init() {
 	go func() {
-		time.Sleep(time.Second)
+		process.SleepAbout1sTo2s()
 		err := os.MkdirAll(datapath, 0755)
 		if err != nil {
 			panic(err)
@@ -53,7 +55,7 @@ func init() {
 
 // load 加载rate数据
 func load(area *rate) error {
-	if _, err := os.Stat(jsonfile); err == nil || os.IsExist(err) {
+	if file.IsExist(jsonfile) {
 		f, err := os.Open(jsonfile)
 		if err == nil {
 			defer f.Close()

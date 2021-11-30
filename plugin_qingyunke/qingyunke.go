@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ import (
 )
 
 var (
-	prio   = 100
+	prio   = 256
 	bucket = rate.NewManager(time.Minute, 20) // 青云客接口回复
 	engine *zero.Engine
 )
@@ -98,13 +99,13 @@ type dataQYK struct {
 
 // 青云客取消息
 func getMessage(msg string) (string, error) {
-	url := "http://api.qingyunke.com/api.php"
+	qykUrl := "http://api.qingyunke.com/api.php"
 	key := "free"
 	appid := "0"
-	url = fmt.Sprintf(url+"?key=%s&appid=%s&msg=%s", key, appid, msg)
+	qykUrl = fmt.Sprintf(qykUrl+"?key=%s&appid=%s&msg=%s", key, appid, url.QueryEscape(msg))
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", qykUrl, nil)
 	if err != nil {
 		return "", err
 	}

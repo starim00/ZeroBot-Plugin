@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/fogleman/gg"
@@ -21,7 +22,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 
 	"github.com/FloatTech/ZeroBot-Plugin/control"
-	"github.com/FloatTech/ZeroBot-Plugin/utils/dl"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/file"
 	"github.com/FloatTech/ZeroBot-Plugin/utils/math"
 )
 
@@ -35,6 +36,8 @@ var (
 	table = [...]string{"车万", "DC4", "爱因斯坦", "星空列车", "樱云之恋", "富婆妹", "李清歌", "公主连结", "原神", "明日方舟", "碧蓝航线", "碧蓝幻想", "战双", "阴阳师"}
 	// 映射底图与 index
 	index = make(map[string]uint32)
+	// 下载锁
+	dlmu sync.Mutex
 )
 
 func init() {
@@ -76,25 +79,33 @@ func init() {
 		Handle(func(ctx *zero.Ctx) {
 			// 检查签文文件是否存在
 			mikuji := base + "运势签文.json"
-			if _, err := os.Stat(mikuji); err != nil && !os.IsExist(err) {
-				ctx.SendChain(message.Text("正在下载签文文件，请稍后..."))
-				err := dl.DownloadTo(site+"运势签文.json", mikuji)
-				if err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
-					return
+			if file.IsNotExist(mikuji) {
+				dlmu.Lock()
+				if file.IsNotExist(mikuji) {
+					ctx.SendChain(message.Text("正在下载签文文件，请稍后..."))
+					err := file.DownloadTo(site+"运势签文.json", mikuji, false)
+					if err != nil {
+						ctx.SendChain(message.Text("ERROR: ", err))
+						return
+					}
+					ctx.SendChain(message.Text("下载签文文件完毕"))
 				}
-				ctx.SendChain(message.Text("下载签文文件完毕"))
+				dlmu.Unlock()
 			}
 			// 检查字体文件是否存在
 			ttf := base + "sakura.ttf"
-			if _, err := os.Stat(ttf); err != nil && !os.IsExist(err) {
-				ctx.SendChain(message.Text("正在下载字体文件，请稍后..."))
-				err := dl.DownloadTo(site+"sakura.ttf", ttf)
-				if err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
-					return
+			if file.IsNotExist(ttf) {
+				dlmu.Lock()
+				if file.IsNotExist(ttf) {
+					ctx.SendChain(message.Text("正在下载字体文件，请稍后..."))
+					err := file.DownloadTo(site+"sakura.ttf", ttf, false)
+					if err != nil {
+						ctx.SendChain(message.Text("ERROR: ", err))
+						return
+					}
+					ctx.SendChain(message.Text("下载字体文件完毕"))
 				}
-				ctx.SendChain(message.Text("下载字体文件完毕"))
+				dlmu.Unlock()
 			}
 			// 获取该群背景类型，默认车万
 			kind := "车万"
@@ -109,24 +120,28 @@ func init() {
 			}
 			// 检查背景图片是否存在
 			folder := base + kind
-			if _, err := os.Stat(folder); err != nil && !os.IsExist(err) {
-				ctx.SendChain(message.Text("正在下载背景图片，请稍后..."))
-				zipfile := kind + ".zip"
-				zipcache := base + zipfile
-				err := dl.DownloadTo(site+zipfile, zipcache)
-				if err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
-					return
+			if file.IsNotExist(folder) {
+				dlmu.Lock()
+				if file.IsNotExist(folder) {
+					ctx.SendChain(message.Text("正在下载背景图片，请稍后..."))
+					zipfile := kind + ".zip"
+					zipcache := base + zipfile
+					err := file.DownloadTo(site+zipfile, zipcache, false)
+					if err != nil {
+						ctx.SendChain(message.Text("ERROR: ", err))
+						return
+					}
+					ctx.SendChain(message.Text("下载背景图片完毕"))
+					err = unpack(zipcache, folder+"/")
+					if err != nil {
+						ctx.SendChain(message.Text("ERROR: ", err))
+						return
+					}
+					ctx.SendChain(message.Text("解压背景图片完毕"))
+					// 释放空间
+					os.Remove(zipcache)
 				}
-				ctx.SendChain(message.Text("下载背景图片完毕"))
-				err = unpack(zipcache, folder+"/")
-				if err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
-					return
-				}
-				ctx.SendChain(message.Text("解压背景图片完毕"))
-				// 释放空间
-				os.Remove(zipcache)
+				dlmu.Unlock()
 			}
 			// 生成种子
 			t, _ := strconv.ParseInt(time.Now().Format("20060102"), 10, 64)
@@ -160,7 +175,7 @@ func init() {
 // @return 错误信息
 func unpack(tgt, dest string) error {
 	// 路径目录不存在则创建目录
-	if _, err := os.Stat(dest); err != nil && !os.IsExist(err) {
+	if file.IsNotExist(dest) {
 		if err := os.MkdirAll(dest, 0755); err != nil {
 			panic(err)
 		}

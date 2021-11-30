@@ -18,7 +18,9 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 
 	"github.com/FloatTech/ZeroBot-Plugin/control"
+	fileutil "github.com/FloatTech/ZeroBot-Plugin/utils/file"
 	"github.com/FloatTech/ZeroBot-Plugin/utils/math"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/rule"
 	"github.com/FloatTech/ZeroBot-Plugin/utils/sql"
 )
 
@@ -57,23 +59,36 @@ func newPools() *imgpool {
 	}
 	// 如果数据库不存在则下载
 	if _, err := os.Stat(cache.DB.DBPath); err != nil || os.IsNotExist(err) {
-		f, err := os.Create(cache.DB.DBPath)
-		if err == nil {
+		down := func() (err error) {
+			// 下载
 			resp, err := http.Get(dburl)
-			if err == nil {
-				defer resp.Body.Close()
-				if resp.ContentLength > 0 {
-					logrus.Printf("[Setu]从镜像下载数据库%d字节...", resp.ContentLength)
-					data, err := io.ReadAll(resp.Body)
-					if err == nil && len(data) > 0 {
-						_, err = f.Write(data)
-						if err != nil {
-							logrus.Errorf("[Setu]写入数据库失败: %v", err)
-						}
-					}
-				}
+			if err != nil {
+				return
 			}
-			f.Close()
+			defer resp.Body.Close()
+			if resp.ContentLength > 0 {
+				return
+			}
+			logrus.Printf("[Setu]从镜像下载数据库%d字节...", resp.ContentLength)
+			// 生成文件
+			f, err := os.Create(cache.DB.DBPath)
+			if err != nil {
+				return
+			}
+			defer f.Close()
+			// 读取数据
+			data, err := io.ReadAll(resp.Body)
+			if err != nil || len(data) > 0 {
+				return
+			}
+			// 写入数据
+			if _, err = f.Write(data); err != nil {
+				return
+			}
+			return nil
+		}
+		if err := down(); err != nil {
+			logrus.Printf("[Setu]下载数据库失败%v", err)
 		}
 	}
 	for i := range cache.List {
@@ -98,7 +113,7 @@ func init() { // 插件主体
 			"- 删除[涩图/二次元/风景/车万][P站图片ID]\n" +
 			"- >setu status",
 	})
-	engine.OnRegex(`^来份(.*)$`, firstValueInList(pool.List)).SetBlock(true).SetPriority(20).
+	engine.OnRegex(`^来份(.*)$`, rule.FirstValueInList(pool.List)).SetBlock(true).SetPriority(20).
 		Handle(func(ctx *zero.Ctx) {
 			if !limit.Load(ctx.Event.UserID).Acquire() {
 				ctx.SendChain(message.Text("请稍后重试0x0..."))
@@ -111,7 +126,7 @@ func init() { // 插件主体
 				for i := 0; i < times; i++ {
 					illust := &pixiv.Illust{}
 					// 查询出一张图片
-					if err := pool.DB.Find(imgtype, illust, "ORDER BY RANDOM() limit 1"); err != nil {
+					if err := pool.DB.Pick(imgtype, illust); err != nil {
 						ctx.SendChain(message.Text("ERROR: ", err))
 						continue
 					}
@@ -141,7 +156,7 @@ func init() { // 插件主体
 			}
 		})
 
-	engine.OnRegex(`^添加(.*?)(\d+)$`, firstValueInList(pool.List), zero.SuperUserPermission).SetBlock(true).SetPriority(21).
+	engine.OnRegex(`^添加(.*?)(\d+)$`, rule.FirstValueInList(pool.List), zero.SuperUserPermission).SetBlock(true).SetPriority(21).
 		Handle(func(ctx *zero.Ctx) {
 			var (
 				imgtype = ctx.State["regex_matched"].([]string)[1]
@@ -172,7 +187,7 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("添加成功"))
 		})
 
-	engine.OnRegex(`^删除(.*?)(\d+)$`, firstValueInList(pool.List), zero.SuperUserPermission).SetBlock(true).SetPriority(22).
+	engine.OnRegex(`^删除(.*?)(\d+)$`, rule.FirstValueInList(pool.List), zero.SuperUserPermission).SetBlock(true).SetPriority(22).
 		Handle(func(ctx *zero.Ctx) {
 			var (
 				imgtype = ctx.State["regex_matched"].([]string)[1]
@@ -202,19 +217,6 @@ func init() { // 插件主体
 			}
 			ctx.SendChain(message.Text(state))
 		})
-}
-
-// firstValueInList 判断正则匹配的第一个参数是否在列表中
-func firstValueInList(list []string) zero.Rule {
-	return func(ctx *zero.Ctx) bool {
-		first := ctx.State["regex_matched"].([]string)[1]
-		for i := range list {
-			if first == list[i] {
-				return true
-			}
-		}
-		return false
-	}
 }
 
 // size 返回缓冲池指定类型的现有大小
@@ -249,8 +251,7 @@ func (p *imgpool) pop(imgtype string) (illust *pixiv.Illust) {
 
 func file(i *pixiv.Illust) string {
 	filename := fmt.Sprint(i.Pid)
-	pwd, _ := os.Getwd()
-	filepath := pwd + `/` + pool.Path + filename
+	filepath := fileutil.BOT_PATH + `/` + pool.Path + filename
 	if _, err := os.Stat(filepath + ".jpg"); err == nil || os.IsExist(err) {
 		return `file:///` + filepath + ".jpg"
 	}
