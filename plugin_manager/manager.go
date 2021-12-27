@@ -3,7 +3,6 @@ package manager
 
 import (
 	"fmt"
-	"io"
 	"math/rand"
 	"os"
 	"sort"
@@ -16,16 +15,18 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
+	"github.com/FloatTech/ZeroBot-Plugin/control"
 	"github.com/FloatTech/ZeroBot-Plugin/plugin_manager/timer"
-	"github.com/FloatTech/ZeroBot-Plugin/utils/file"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/ctxext"
 	"github.com/FloatTech/ZeroBot-Plugin/utils/math"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/process"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/sql"
 )
 
 const (
-	datapath  = "data/manager/"
-	confile   = datapath + "config.pb"
-	timerfile = datapath + "timers.pb"
-	hint      = "====群管====\n" +
+	datapath = "data/manager/"
+	confile  = datapath + "config.db"
+	hint     = "====群管====\n" +
 		"- 禁言@QQ 1分钟\n" +
 		"- 解除禁言 @QQ\n" +
 		"- 我要自闭 1分钟\n" +
@@ -37,7 +38,7 @@ const (
 		"- 修改头衔@QQ XXX\n" +
 		"- 申请头衔 XXX\n" +
 		"- 踢出群聊@QQ\n" +
-		"- 退出群聊 1234\n" +
+		"- 退出群聊 1234@bot\n" +
 		"- 群聊转发 1234 XXX\n" +
 		"- 私聊转发 0000 XXX\n" +
 		"- 在MM月dd日的hh点mm分时(用http://url)提醒大家XXX\n" +
@@ -53,77 +54,85 @@ const (
 )
 
 var (
-	config Config
-	limit  = rate.NewManager(time.Minute*5, 2)
-	clock  timer.Clock
+	db    = &sql.Sqlite{DBPath: confile}
+	limit = rate.NewManager(time.Minute*5, 2)
+	clock timer.Clock
 )
 
+var engine = control.Register("manager", &control.Options{
+	DisableOnDefault: false,
+	Help:             hint,
+})
+
 func init() { // 插件主体
-	loadConfig()
 	go func() {
-		time.Sleep(time.Second + time.Millisecond*time.Duration(rand.Intn(1000)))
-		clock = timer.NewClock(timerfile)
+		process.SleepAbout1sTo2s()
+		_ = os.MkdirAll(datapath, 0755)
+		clock = timer.NewClock(db)
+		err := db.Create("welcome", &welcome{})
+		if err != nil {
+			panic(err)
+		}
+		err = db.Create("member", &member{})
+		if err != nil {
+			panic(err)
+		}
 	}()
-	// 菜单
-	zero.OnFullMatch("群管系统", zero.AdminPermission).SetBlock(true).FirstPriority().
-		Handle(func(ctx *zero.Ctx) {
-			ctx.SendChain(message.Text(hint))
-		})
 	// 升为管理
-	zero.OnRegex(`^升为管理.*?(\d+)`, zero.OnlyGroup, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^升为管理.*?(\d+)`, zero.OnlyGroup, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupAdmin(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被升为管理的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被升为管理的人的qq
 				true,
 			)
 			nickname := ctx.GetGroupMemberInfo( // 被升为管理的人的昵称
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被升为管理的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被升为管理的人的qq
 				false,
 			).Get("nickname").Str
 			ctx.SendChain(message.Text(nickname + " 升为了管理~"))
 		})
 	// 取消管理
-	zero.OnRegex(`^取消管理.*?(\d+)`, zero.OnlyGroup, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^取消管理.*?(\d+)`, zero.OnlyGroup, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupAdmin(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被取消管理的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被取消管理的人的qq
 				false,
 			)
 			nickname := ctx.GetGroupMemberInfo( // 被取消管理的人的昵称
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被取消管理的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被取消管理的人的qq
 				false,
 			).Get("nickname").Str
 			ctx.SendChain(message.Text("残念~ " + nickname + " 暂时失去了管理员的资格"))
 		})
 	// 踢出群聊
-	zero.OnRegex(`^踢出群聊.*?(\d+)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^踢出群聊.*?(\d+)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupKick(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被踢出群聊的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被踢出群聊的人的qq
 				false,
 			)
 			nickname := ctx.GetGroupMemberInfo( // 被踢出群聊的人的昵称
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被踢出群聊的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被踢出群聊的人的qq
 				false,
 			).Get("nickname").Str
 			ctx.SendChain(message.Text("残念~ " + nickname + " 被放逐"))
 		})
 	// 退出群聊
-	zero.OnRegex(`^退出群聊.*?(\d+)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^退出群聊.*?(\d+)`, zero.OnlyToMe, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupLeave(
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 要退出的群的群号
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 要退出的群的群号
 				true,
 			)
 		})
 	// 开启全体禁言
-	zero.OnRegex(`^开启全员禁言$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^开启全员禁言$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupWholeBan(
 				ctx.Event.GroupID,
@@ -132,7 +141,7 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("全员自闭开始~"))
 		})
 	// 解除全员禁言
-	zero.OnRegex(`^解除全员禁言$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^解除全员禁言$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupWholeBan(
 				ctx.Event.GroupID,
@@ -141,9 +150,9 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("全员自闭结束~"))
 		})
 	// 禁言
-	zero.OnRegex(`^禁言.*?(\d+).*?\s(\d+)(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^禁言.*?(\d+).*?\s(\d+)(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			duration := strToInt(ctx.State["regex_matched"].([]string)[2])
+			duration := math.Str2Int64(ctx.State["regex_matched"].([]string)[2])
 			switch ctx.State["regex_matched"].([]string)[3] {
 			case "分钟":
 				//
@@ -159,25 +168,25 @@ func init() { // 插件主体
 			}
 			ctx.SetGroupBan(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 要禁言的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 要禁言的人的qq
 				duration*60, // 要禁言的时间（分钟）
 			)
 			ctx.SendChain(message.Text("小黑屋收留成功~"))
 		})
 	// 解除禁言
-	zero.OnRegex(`^解除禁言.*?(\d+)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^解除禁言.*?(\d+)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupBan(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 要解除禁言的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 要解除禁言的人的qq
 				0,
 			)
 			ctx.SendChain(message.Text("小黑屋释放成功~"))
 		})
 	// 自闭禁言
-	zero.OnRegex(`^(我要自闭|禅定).*?(\d+)(.*)`, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^(我要自闭|禅定).*?(\d+)(.*)`, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			duration := strToInt(ctx.State["regex_matched"].([]string)[2])
+			duration := math.Str2Int64(ctx.State["regex_matched"].([]string)[2])
 			switch ctx.State["regex_matched"].([]string)[3] {
 			case "分钟", "min", "mins", "m":
 				break
@@ -199,27 +208,27 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("那我就不手下留情了~"))
 		})
 	// 修改名片
-	zero.OnRegex(`^修改名片.*?(\d+).*?\s(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^修改名片.*?(\d+).*?\s(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupCard(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被修改群名片的人
-				ctx.State["regex_matched"].([]string)[2],           // 修改成的群名片
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被修改群名片的人
+				ctx.State["regex_matched"].([]string)[2],                 // 修改成的群名片
 			)
 			ctx.SendChain(message.Text("嗯！已经修改了"))
 		})
 	// 修改头衔
-	zero.OnRegex(`^修改头衔.*?(\d+).*?\s(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^修改头衔.*?(\d+).*?\s(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupSpecialTitle(
 				ctx.Event.GroupID,
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 被修改群头衔的人
-				ctx.State["regex_matched"].([]string)[2],           // 修改成的群头衔
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 被修改群头衔的人
+				ctx.State["regex_matched"].([]string)[2],                 // 修改成的群头衔
 			)
 			ctx.SendChain(message.Text("嗯！已经修改了"))
 		})
 	// 申请头衔
-	zero.OnRegex(`^申请头衔(.*)`, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^申请头衔(.*)`, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SetGroupSpecialTitle(
 				ctx.Event.GroupID,
@@ -229,45 +238,45 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("嗯！不错的头衔呢~"))
 		})
 	// 群聊转发
-	zero.OnRegex(`^群聊转发.*?(\d+)\s(.*)`, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^群聊转发.*?(\d+)\s(.*)`, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			// 对CQ码进行反转义
 			content := ctx.State["regex_matched"].([]string)[2]
 			content = strings.ReplaceAll(content, "&#91;", "[")
 			content = strings.ReplaceAll(content, "&#93;", "]")
 			ctx.SendGroupMessage(
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 需要发送的群
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 需要发送的群
 				content, // 需要发送的信息
 			)
 			ctx.SendChain(message.Text("📧 --> " + ctx.State["regex_matched"].([]string)[1]))
 		})
 	// 私聊转发
-	zero.OnRegex(`^私聊转发.*?(\d+)\s(.*)`, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^私聊转发.*?(\d+)\s(.*)`, zero.SuperUserPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			// 对CQ码进行反转义
 			content := ctx.State["regex_matched"].([]string)[2]
 			content = strings.ReplaceAll(content, "&#91;", "[")
 			content = strings.ReplaceAll(content, "&#93;", "]")
 			ctx.SendPrivateMessage(
-				strToInt(ctx.State["regex_matched"].([]string)[1]), // 需要发送的人的qq
+				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 需要发送的人的qq
 				content, // 需要发送的信息
 			)
 			ctx.SendChain(message.Text("📧 --> " + ctx.State["regex_matched"].([]string)[1]))
 		})
 	// 定时提醒
-	zero.OnRegex(`^在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分时(用.+)?提醒大家(.*)`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分时(用.+)?提醒大家(.*)`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			dateStrs := ctx.State["regex_matched"].([]string)
-			ts := timer.GetFilledTimer(dateStrs, ctx.Event.SelfID, false)
+			ts := timer.GetFilledTimer(dateStrs, ctx.Event.SelfID, ctx.Event.GroupID, false)
 			if ts.En() {
-				go clock.RegisterTimer(ts, ctx.Event.GroupID, true)
+				go clock.RegisterTimer(ts, true)
 				ctx.SendChain(message.Text("记住了~"))
 			} else {
 				ctx.SendChain(message.Text("参数非法:" + ts.Alert))
 			}
 		})
 	// 定时 cron 提醒
-	zero.OnRegex(`^在"(.*)"时(用.+)?提醒大家(.*)`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^在"(.*)"时(用.+)?提醒大家(.*)`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			dateStrs := ctx.State["regex_matched"].([]string)
 			var url, alert string
@@ -282,19 +291,19 @@ func init() { // 插件主体
 				return
 			}
 			logrus.Debugln("[manager] cron:", dateStrs[1])
-			ts := timer.GetFilledCronTimer(dateStrs[1], alert, url, ctx.Event.SelfID)
-			if clock.RegisterTimer(ts, ctx.Event.GroupID, true) {
+			ts := timer.GetFilledCronTimer(dateStrs[1], alert, url, ctx.Event.SelfID, ctx.Event.GroupID)
+			if clock.RegisterTimer(ts, true) {
 				ctx.SendChain(message.Text("记住了~"))
 			} else {
 				ctx.SendChain(message.Text("参数非法:" + ts.Alert))
 			}
 		})
 	// 取消定时
-	zero.OnRegex(`^取消在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分的提醒`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^取消在(.{1,2})月(.{1,3}日|每?周.?)的(.{1,3})点(.{1,3})分的提醒`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			dateStrs := ctx.State["regex_matched"].([]string)
-			ts := timer.GetFilledTimer(dateStrs, ctx.Event.SelfID, true)
-			ti := ts.GetTimerInfo(ctx.Event.GroupID)
+			ts := timer.GetFilledTimer(dateStrs, ctx.Event.SelfID, ctx.Event.GroupID, true)
+			ti := ts.GetTimerID()
 			ok := clock.CancelTimer(ti)
 			if ok {
 				ctx.SendChain(message.Text("取消成功~"))
@@ -303,11 +312,11 @@ func init() { // 插件主体
 			}
 		})
 	// 取消 cron 定时
-	zero.OnRegex(`^取消在"(.*)"的提醒`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^取消在"(.*)"的提醒`, zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			dateStrs := ctx.State["regex_matched"].([]string)
-			ts := timer.Timer{Cron: dateStrs[1]}
-			ti := ts.GetTimerInfo(ctx.Event.GroupID)
+			ts := timer.Timer{Cron: dateStrs[1], GrpID: ctx.Event.GroupID}
+			ti := ts.GetTimerID()
 			ok := clock.CancelTimer(ti)
 			if ok {
 				ctx.SendChain(message.Text("取消成功~"))
@@ -316,12 +325,12 @@ func init() { // 插件主体
 			}
 		})
 	// 列出本群所有定时
-	zero.OnFullMatch("列出所有提醒", zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnFullMatch("列出所有提醒", zero.AdminPermission, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			ctx.SendChain(message.Text(clock.ListTimers(uint64(ctx.Event.GroupID))))
+			ctx.SendChain(message.Text(clock.ListTimers(ctx.Event.GroupID)))
 		})
 	// 随机点名
-	zero.OnFullMatchGroup([]string{"翻牌"}, zero.OnlyGroup).SetBlock(true).SetPriority(40).
+	engine.OnFullMatchGroup([]string{"翻牌"}, zero.OnlyGroup).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			if !limit.Load(ctx.Event.UserID).Acquire() {
 				ctx.SendChain(message.Text("少女祈祷中......"))
@@ -359,92 +368,131 @@ func init() { // 插件主体
 			)
 		})
 	// 入群欢迎
-	zero.OnNotice().SetBlock(false).FirstPriority().
+	engine.OnNotice().SetBlock(false).FirstPriority().
 		Handle(func(ctx *zero.Ctx) {
-			if ctx.Event.NoticeType == "group_increase" {
-				word, ok := config.Welcome[uint64(ctx.Event.GroupID)]
-				if ok {
-					ctx.SendChain(message.Text(word))
+			if ctx.Event.NoticeType == "group_increase" && ctx.Event.SelfID != ctx.Event.UserID {
+				var w welcome
+				err := db.Find("welcome", &w, "where gid = "+strconv.FormatInt(ctx.Event.GroupID, 10))
+				if err == nil {
+					ctx.SendChain(message.Text(w.Msg))
 				} else {
 					ctx.SendChain(message.Text("欢迎~"))
 				}
-				enable, ok1 := config.Checkin[uint64(ctx.Event.GroupID)]
-				if ok1 && enable {
-					uid := ctx.Event.UserID
-					a := rand.Intn(100)
-					b := rand.Intn(100)
-					r := a + b
-					ctx.SendChain(message.At(uid), message.Text(fmt.Sprintf("考你一道题：%d+%d=?\n如果60秒之内答不上来，%s就要把你踢出去了哦~", a, b, zero.BotConfig.NickName[0])))
-					// 匹配发送者进行验证
-					rule := func(ctx *zero.Ctx) bool {
-						for _, elem := range ctx.Event.Message {
-							if elem.Type == "text" {
-								text := strings.ReplaceAll(elem.Data["text"], " ", "")
-								ans, err := strconv.Atoi(text)
-								if err == nil {
-									if ans != r {
-										ctx.SendChain(message.Text("答案不对哦，再想想吧~"))
-										return false
+				c, ok := control.Lookup("manager")
+				if ok {
+					enable := c.GetData(ctx.Event.GroupID)&1 == 1
+					if enable {
+						uid := ctx.Event.UserID
+						a := rand.Intn(100)
+						b := rand.Intn(100)
+						r := a + b
+						ctx.SendChain(message.At(uid), message.Text(fmt.Sprintf("考你一道题：%d+%d=?\n如果60秒之内答不上来，%s就要把你踢出去了哦~", a, b, zero.BotConfig.NickName[0])))
+						// 匹配发送者进行验证
+						rule := func(ctx *zero.Ctx) bool {
+							for _, elem := range ctx.Event.Message {
+								if elem.Type == "text" {
+									text := strings.ReplaceAll(elem.Data["text"], " ", "")
+									ans, err := strconv.Atoi(text)
+									if err == nil {
+										if ans != r {
+											ctx.SendChain(message.Text("答案不对哦，再想想吧~"))
+											return false
+										}
+										return true
 									}
-									return true
 								}
 							}
+							return false
 						}
-						return false
-					}
-					next := zero.NewFutureEvent("message", 999, false, zero.CheckUser(ctx.Event.UserID), rule)
-					recv, cancel := next.Repeat()
-					select {
-					case <-time.After(time.Minute):
-						ctx.SendChain(message.Text("拜拜啦~"))
-						ctx.SetGroupKick(ctx.Event.GroupID, uid, false)
-						cancel()
-					case <-recv:
-						cancel()
-						ctx.SendChain(message.Text("答对啦~"))
+						next := zero.NewFutureEvent("message", 999, false, zero.CheckUser(ctx.Event.UserID), rule)
+						recv, cancel := next.Repeat()
+						select {
+						case <-time.After(time.Minute):
+							ctx.SendChain(message.Text("拜拜啦~"))
+							ctx.SetGroupKick(ctx.Event.GroupID, uid, false)
+							cancel()
+						case <-recv:
+							cancel()
+							ctx.SendChain(message.Text("答对啦~"))
+						}
 					}
 				}
 			}
 		})
 	// 退群提醒
-	zero.OnNotice().SetBlock(false).SetPriority(40).
+	engine.OnNotice().SetBlock(false).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			if ctx.Event.NoticeType == "group_decrease" {
-				nickname := ctx.GetStrangerInfo(ctx.Event.UserID, true).Get("nickname").Str
-				ctx.SendChain(message.Text(nickname + "离开了我们 有缘再会"))
+				userid := ctx.Event.UserID
+				ctx.SendChain(message.Text(ctxext.CardOrNickName(ctx, userid), "(", userid, ")", "离开了我们..."))
 			}
 		})
 	// 设置欢迎语
-	zero.OnRegex(`^设置欢迎语([\s\S]*)$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	engine.OnRegex(`^设置欢迎语([\s\S]*)$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
-			config.Welcome[uint64(ctx.Event.GroupID)] = ctx.State["regex_matched"].([]string)[1]
-			if saveConfig() == nil {
+			w := &welcome{
+				GrpID: ctx.Event.GroupID,
+				Msg:   ctx.State["regex_matched"].([]string)[1],
+			}
+			err := db.Insert("welcome", w)
+			if err == nil {
 				ctx.SendChain(message.Text("记住啦!"))
 			} else {
-				ctx.SendChain(message.Text("出错啦!"))
+				ctx.SendChain(message.Text("出错啦: ", err))
 			}
 		})
-	// 入群验证开关
-	zero.OnRegex(`^(.*)入群验证$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+	// 入群后验证开关
+	engine.OnRegex(`^(.*)入群验证$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
 			option := ctx.State["regex_matched"].([]string)[1]
-			switch option {
-			case "开启":
-				config.Checkin[uint64(ctx.Event.GroupID)] = true
-			case "关闭":
-				config.Checkin[uint64(ctx.Event.GroupID)] = false
-			default:
+			c, ok := control.Lookup("manager")
+			if ok {
+				data := c.GetData(ctx.Event.GroupID)
+				switch option {
+				case "开启", "打开", "启用":
+					data |= 1
+				case "关闭", "关掉", "禁用":
+					data &= 0x7fffffff_fffffffe
+				default:
+					return
+				}
+				err := c.SetData(ctx.Event.GroupID, data)
+				if err == nil {
+					ctx.SendChain(message.Text("已", option))
+					return
+				}
+				ctx.SendChain(message.Text("出错啦: ", err))
 				return
 			}
-			if saveConfig() == nil {
-				ctx.SendChain(message.Text("已", option))
-			} else {
-				ctx.SendChain(message.Text("出错啦!"))
+			ctx.SendChain(message.Text("找不到服务!"))
+		})
+	// 加群 gist 验证开关
+	engine.OnRegex(`^(.*)gist加群自动审批$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
+		Handle(func(ctx *zero.Ctx) {
+			option := ctx.State["regex_matched"].([]string)[1]
+			c, ok := control.Lookup("manager")
+			if ok {
+				data := c.GetData(ctx.Event.GroupID)
+				switch option {
+				case "开启", "打开", "启用":
+					data |= 0x10
+				case "关闭", "关掉", "禁用":
+					data &= 0x7fffffff_fffffffd
+				default:
+					return
+				}
+				err := c.SetData(ctx.Event.GroupID, data)
+				if err == nil {
+					ctx.SendChain(message.Text("已", option))
+					return
+				}
+				ctx.SendChain(message.Text("出错啦: ", err))
+				return
 			}
-			return
+			ctx.SendChain(message.Text("找不到服务!"))
 		})
 	// 运行 CQ 码
-	zero.OnRegex(`^run(.*)$`, zero.SuperUserPermission).SetBlock(true).SetPriority(0).
+	engine.OnRegex(`^run(.*)$`, zero.SuperUserPermission).SetBlock(true).SetPriority(0).
 		Handle(func(ctx *zero.Ctx) {
 			var cmd = ctx.State["regex_matched"].([]string)[1]
 			cmd = strings.ReplaceAll(cmd, "&#91;", "[")
@@ -452,55 +500,34 @@ func init() { // 插件主体
 			// 可注入，权限为主人
 			ctx.Send(cmd)
 		})
-	zero.OnRegex("满级\\S*装备").SetBlock(true).SetPriority(0).Handle(func(ctx *zero.Ctx) {
-		if ctx.Event.GroupID == 418438205 {
-			ctx.SendChain(message.Text("豆芽第一个满级职业装备麻烦私聊群主登记，然后会有人帮你搓。如果群主没回可能是在上班/摸鱼/偷鸡，可以换个时间在私聊戳他"))
-		}
-	})
-}
-
-func strToInt(str string) int64 {
-	val, _ := strconv.ParseInt(str, 10, 64)
-	return val
-}
-
-// loadConfig 加载设置，没有则手动初始化
-func loadConfig() {
-	mkdirerr := os.MkdirAll(datapath, 0755)
-	if mkdirerr == nil {
-		if file.IsExist(confile) {
-			f, err := os.Open(confile)
-			if err == nil {
-				data, err1 := io.ReadAll(f)
-				if err1 == nil {
-					if len(data) > 0 {
-						if config.Unmarshal(data) == nil {
-							return
-						}
-					}
-				}
+	// 根据 gist 自动同意加群
+	// 加群请在github新建一个gist，其文件名为本群群号的字符串的md5(小写)，内容为一行，是当前unix时间戳(10分钟内有效)。
+	// 然后请将您的用户名和gist哈希(小写)按照username/gisthash的格式填写到回答即可。
+	engine.OnRequest().SetBlock(false).FirstPriority().Handle(func(ctx *zero.Ctx) {
+		/*if ctx.Event.RequestType == "friend" {
+			ctx.SetFriendAddRequest(ctx.Event.Flag, true, "")
+		}*/
+		c, ok := control.Lookup("manager")
+		if ok && c.GetData(ctx.Event.GroupID)&0x10 == 0x10 && ctx.Event.RequestType == "group" && ctx.Event.SubType == "add" {
+			// gist 文件名是群号的 ascii 编码的 md5
+			// gist 内容是当前 uinx 时间戳，在 10 分钟内视为有效
+			ans := ctx.Event.Comment[strings.Index(ctx.Event.Comment, "答案：")+len("答案："):]
+			divi := strings.Index(ans, "/")
+			if divi <= 0 {
+				ctx.SetGroupAddRequest(ctx.Event.Flag, "add", false, "格式错误!")
+				return
+			}
+			ghun := ans[:divi]
+			hash := ans[divi+1:]
+			logrus.Infoln("[manager]收到加群申请, 用户:", ghun, ", hash:", hash)
+			ok, reason := checkNewUser(ctx.Event.UserID, ctx.Event.GroupID, ghun, hash)
+			if ok {
+				ctx.SetGroupAddRequest(ctx.Event.Flag, "add", true, "")
+				process.SleepAbout1sTo2s()
+				ctx.SetGroupCard(ctx.Event.GroupID, ctx.Event.UserID, ghun)
+			} else {
+				ctx.SetGroupAddRequest(ctx.Event.Flag, "add", false, reason)
 			}
 		}
-		config.Checkin = make(map[uint64]bool)
-		config.Welcome = make(map[uint64]string)
-	} else {
-		panic(mkdirerr)
-	}
-}
-
-// saveConfig 保存设置，无此文件则新建
-func saveConfig() error {
-	data, err := config.Marshal()
-	if err != nil {
-		return err
-	} else if file.IsExist(datapath) {
-		f, err1 := os.OpenFile(confile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-		if err1 != nil {
-			return err1
-		}
-		defer f.Close()
-		_, err2 := f.Write(data)
-		return err2
-	}
-	return nil
+	})
 }

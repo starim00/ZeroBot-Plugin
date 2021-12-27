@@ -16,7 +16,16 @@
 [![License](https://img.shields.io/github/license/FloatTech/ZeroBot-Plugin.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/FloatTech/ZeroBot-Plugin/master/LICENSE)
 [![qq group](https://img.shields.io/badge/group-1048452984-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=QMb7x1mM)
 
+本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
+| 项目地址 | 平台 | 核心作者 |
+| --- | --- | --- |
+| [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) | [MiraiGo](https://github.com/Mrs4s/MiraiGo) | Mrs4s |
+| [yyuueexxiinngg/cqhttp-mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai) | [Mirai](https://github.com/mamoe/mirai) | yyuueexxiinngg |
+| [takayama-lily/onebot](https://github.com/takayama-lily/onebot) | [OICQ](https://github.com/takayama-lily/oicq) | takayama |
+
 </div>
+
+> 如果您不知道什么是 [OneBot](https://github.com/howmanybots/onebot) 或不希望运行多个程序，还可以直接前往 [gocqzbp](https://github.com/FloatTech/gocqzbp) 的 [Release](https://github.com/FloatTech/gocqzbp/releases) 页面下载单一可执行文件或前往 [Packages](https://github.com/FloatTech/gocqzbp/pkgs/container/gocqzbp) 页面使用`docker`，运行后按提示登录即可。
 
 ## 命令行参数
 ```bash
@@ -43,8 +52,11 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] /全局启用 xxx
     - [x] /全局禁用 xxx
     - [x] /还原 xxx (在发送的群/用户还原xxx的开启状态到初始状态)
+    - [x] /禁止 service qq1 qq2... (禁止 qqs 使用服务 service)
+    - [x] /允许 service qq1 qq2... (重新允许 qqs 使用服务 service)
     - [x] /用法 xxx
     - [x] /服务列表
+    - [x] /服务详情
     - [x] @Bot 插件冲突检测 (会在本群发送一条消息并在约 1s 后撤回以检测其它同类 bot 中已启用的插件并禁用)
 - **聊天** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat"`
     - [x] [BOT名字]
@@ -53,8 +65,9 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] 空调关
     - [x] 群温度
     - [x] 设置温度[正整数]
+    - [x] @Bot mua|啾咪|摸|上你|傻|裸|贴|老婆|抱|亲|一下|咬|操|123|进去|调教|搓|让|捏|挤|略|呐|原味|胖次|内裤|内衣|衣服|ghs|批|憨批|kkp|咕|骚|喜欢|suki|好き|看|不能|砸了|透|口我|草我|自慰|onani|オナニー|炸了|色图|涩图|告白|对不起|回来|吻|软|壁咚|掰开|女友|是|喵|嗷呜|叫|拜|佬|awsl|臭|香|腿|张开|脚|脸|头发|手|pr|舔|小穴|腰|诶嘿嘿|可爱|扭蛋|鼻|眼|色气|推|床|举|手冲|饿|变|敲|爬|怕|冲|射|不穿|迫害|猫粮|揪尾巴|薄荷|早|晚安|揉|榨|掐|胸|奶子|欧派|嫩|蹭|牵手|握手|拍照|w|睡不着|欧尼酱|哥|爱你|过来|自闭|打不过|么么哒|很懂|膝枕|累了|安慰|洗澡|一起睡觉|一起|多大|姐姐|糖|嗦|牛子|🐂子|🐮子|嫌弃|紧|baka|笨蛋|插|插进来|屁股|翘|翘起来|抬|抬起|爸|傲娇|rua|咕噜咕噜|咕噜|上床|做爱|吃掉|吃|揪|种草莓|种草|掀|妹|病娇|嘻
 - **ATRI** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_atri"`
-    - [x] 具体指令看代码
+    - [x] 具体指令看 /用法 atri
     - 注：本插件基于 [ATRI](https://github.com/Kyomotoi/ATRI) ，为 Golang 移植版
 - **群管** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_manager"`
     - [x] 禁言[@xxx][分钟]
@@ -68,7 +81,7 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] 修改头衔[@xxx][xxx]
     - [x] 申请头衔[xxx]
     - [x] 踢出群聊[@xxx]
-    - [x] 退出群聊[群号]
+    - [x] 退出群聊[群号]@Bot
     - [x] *入群欢迎
     - [x] *退群通知
     - [x] 设置欢迎语[欢迎~]
@@ -81,11 +94,12 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] 列出所有提醒
     - [x] 翻牌
     - [x] [开启|关闭]入群验证
-    - [ ] 同意入群请求
+    - [x] [开启|关闭]gist加群自动审批
     - [ ] 同意好友请求
     - [ ] 撤回[@xxx] [xxx]
     - [ ] 警告[@xxx]
     - [x] run[xxx]
+    - 注：使用gist加群自动审批，请在群介绍添加以下说明，同时开启`需要回答问题并由管理员审核`：加群请在github新建一个gist，其文件名为本群群号的字符串的md5(小写)，内容为一行，是当前unix时间戳(10分钟内有效)。然后请将您的用户名和gist哈希(小写)按照username/gisthash的格式填写到回答即可。
 - **GitHub仓库搜索** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_github"`
     - [x] >github [xxx]
     - [x] >github -p [xxx]
@@ -145,12 +159,15 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
 - **每日运势** `import _ github.com/FloatTech/ZeroBot-Plugin/plugin_fortune`
     - [x] 运势|抽签
     - [x] 设置底图[车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌 公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师]
+- **睡眠管理** `import _ github.com/FloatTech/ZeroBot-Plugin/plugin_sleep_manage`
+    - [x] 早安|晚安
 - **浅草寺求签** `import _ github.com/FloatTech/ZeroBot-Plugin/plugin_omikuji`
     - [x] 求签|占卜
+    - [x] 解签
 - **bilibili** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_bilibili"`
     - [x] >vup info [名字|uid]
-	- [x] >user info [名字|uid]
-	- [x] /开启粉丝日报
+    - [x] >user info [名字|uid]
+    - [x] /开启粉丝日报
 - **嘉然** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_diana"`
     - [x] 小作文
     - [x] 发大病
@@ -161,21 +178,27 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] 查询鬼东西[序号][@xxx]
     - 注：由于需要科学，默认注释。
 - **AIfalse** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_false"`
-    - [x] 查询计算机当前活跃度 [身体检查]
-    - [x] 清理缓存
+    - [x] 查询计算机当前活跃度: [检查身体|自检|启动自检|系统状态]
+    - [x] 清理缓存 (仅适用于 gocq 且需要 bot 的运行目录和 gocq 相同)
     - [ ] 简易语音
     - [ ] 爬图合成 [@xxx]
+- **抽wife** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_nativewife"`
+    - [x] 抽wife[@xxx]
+    - [x] 添加wife[名字][图片]
+    - [x] 删除wife[名字]
+    - [x] [让|不让]所有人均可添加wife
+    - 注：不同群添加后不会重叠
 - **minecraft** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_minecraft"`
     - [x] /mcstart xxx
-	- [x] /mcstop xxx
-	- [x] /mclist servername
+    - [x] /mcstop xxx
+    - [x] /mclist servername
     - 注：此功能实现依赖[MCSManager](https://github.com/Suwings/MCSManager)项目对服务器的管理api，mc服务器如果没有在该管理平台部署此功能无效
 - **炉石** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_hs"`
     - [x] 搜卡[xxxx]
     - [x] [卡组代码xxx]
     - 注：更多搜卡指令参数：https://hs.fbigame.com/misc/searchhelp
 - **青云客** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_qingyunke"`
-	- [x] @Bot 任意文本(任意一句话回复)
+    - [x] @Bot 任意文本(任意一句话回复)
 - **关键字搜图** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_image_finder"`
     - [x] 来张 [xxx]
 - **拼音首字母释义工具** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_nbnhhsh"`
@@ -190,29 +213,49 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
 - **vtb语录** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_vtb_quotation"`
     - [x] vtb语录
     - [x] 随机vtb
+- **书评** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_book_review"`
+    - [x] 书评[xxx]
+    - [x] 随机书评
+- **coser** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_coser" `
+    - [x] coser
+- **小说** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_novel" `
+    - [x] 小说[xxx]
+- **沙雕app插件** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_shadiao"`
+    - [x] 骂他[@xxx]|骂他[qq号] (停用)
+    - [x] 骂我 (停用)
+    - [x] 哄我
+    - [x] 渣我
+    - [x] 来碗绿茶
+    - [x] 发个朋友圈
+    - [x] 来碗毒鸡汤
+    - [x] 讲个段子
+- **笑话** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_funny"`
+    - [x] 讲个笑话[@xxx]|讲个笑话[qq号]
+- **抽象话** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_chouxianghua"`
+    - [x] 抽象翻译[xxx]
+- **绝绝子** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_juejuezi"`
+    - [x] 喝奶茶绝绝子|绝绝子吃饭
+- **藏头诗** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_cangtoushi"`
+    - [x] 藏头诗[xxx]
+    - [x] 藏尾诗[xxx]
+- **cp短打** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_cpstory"`
+    - [x] 组cp[@xxx][@xxx]
+    - [x] 组cp大老师 雪乃
 - **TODO...**
 
 ## 使用方法
 
-本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
-| 项目地址 | 平台 | 核心作者 | 备注 |
-| --- | --- | --- | --- |
-| [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) | [MiraiGo](https://github.com/Mrs4s/MiraiGo) | Mrs4s |  |
-| [yyuueexxiinngg/cqhttp-mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai) | [Mirai](https://github.com/mamoe/mirai) | yyuueexxiinngg |  |
-| [takayama-lily/onebot](https://github.com/takayama-lily/onebot) | [OICQ](https://github.com/takayama-lily/oicq) | takayama |  |
-
-
 ### 使用稳定版/测试版 (推荐)
 
-可以前往[Release](https://github.com/FloatTech/ZeroBot-Plugin/releases)页面下载对应系统版本可执行文件，编译时开启了全部插件。
+可以前往[Release](https://github.com/FloatTech/ZeroBot-Plugin/releases)页面下载对应系统版本可执行文件，编译时开启了全部插件。您还可以选择 [gocqzbp](https://github.com/FloatTech/gocqzbp) 的 [Release](https://github.com/FloatTech/gocqzbp/releases) 或 [Package](https://github.com/FloatTech/gocqzbp/pkgs/container/gocqzbp)，它是 [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) 与本插件的合体。
 
-### 本地运行
+### 本地直接运行
 
-1. 下载安装 [Go](https://studygolang.com/dl) 环境
+1. 下载安装最新 [Go](https://studygolang.com/dl) 环境
 2. 下载本项目[压缩包](https://github.com/FloatTech/ZeroBot-Plugin/archive/master.zip)，本地解压
 3. 编辑 main.go 文件，内容按需修改
-4. 双击 build.bat 文件 或 直接双击 run.bat 文件
-5. 运行 OneBot 框架，并同时运行本插件
+4. 运行 OneBot 框架
+5. `Windows`下双击 run.bat 文件，`Linux`下使用 run.sh 运行本插件
 
 ### 编译运行
 
@@ -228,7 +271,7 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
 
 #### 本地编译/交叉编译
 
-1. 下载安装 [Go](https://studygolang.com/dl) 环境
+1. 下载安装最新 [Go](https://studygolang.com/dl) 环境
 2. clone 并进入本项目，下载所需包
 
 ```bash
@@ -241,15 +284,19 @@ go mod tidy
 ```
 
 3. 编辑 main.go 文件，内容按需修改
-4. 按照平台输入命令编译，下面举了两个不太常见的例子
+4. 按照平台输入命令编译，下面举了一些例子
 
 ```bash
 # 本机平台
-go build -ldflags "-s -w" -o zerobot
+go build -ldflags "-s -w" -o zerobot -trimpath
+# x64 Linux 平台 如各种云服务器
+GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o zerobot -trimpath
+# x64 Windows 平台 如大多数家用电脑
+GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o zerobot.exe -trimpath
 # armv6 Linux 平台 如树莓派 zero W
-GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -ldflags "-s -w" -o zerobot
-# mips Linux 平台 如 路由器 wndr4300
-GOOS=linux GOARCH=mips GOMIPS=softfloat CGO_ENABLED=0 go build -ldflags "-s -w" -o zerobot
+GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -ldflags "-s -w" -o zerobot -trimpath
+# （由于引入了github.com/logoove/sqlite，本项不再可用）mips Linux 平台 如 路由器 wndr4300
+GOOS=linux GOARCH=mips GOMIPS=softfloat CGO_ENABLED=0 go build -ldflags "-s -w" -o zerobot -trimpath
 ```
 
 5. 运行 OneBot 框架，并同时运行本插件

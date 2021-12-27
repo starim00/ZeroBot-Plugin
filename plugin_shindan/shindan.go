@@ -1,15 +1,7 @@
-/*
- * @Author: Kanri
- * @Date: 2021-10-15 21:23:14
- * @LastEditors: Kanri
- * @LastEditTime: 2021-10-15 21:42:51
- * @Description:
- */
 // Package shindan 基于 https://shindanmaker.com 的测定小功能
 package shindan
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/FloatTech/AnimeAPI/shindanmaker"
@@ -18,6 +10,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 
 	"github.com/FloatTech/ZeroBot-Plugin/control"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/ctxext"
 )
 
 var (
@@ -47,13 +40,7 @@ func handle(ctx *zero.Ctx) {
 		return
 	}
 	// 获取名字
-	name := ctx.State["args"].(string)
-	if len(ctx.Event.Message) > 1 && ctx.Event.Message[1].Type == "at" {
-		qq, _ := strconv.ParseInt(ctx.Event.Message[1].Data["qq"], 10, 64)
-		name = ctx.GetGroupMemberInfo(ctx.Event.GroupID, qq, false).Get("nickname").Str
-	} else if name == "" {
-		name = ctx.Event.Sender.NickName
-	}
+	name := ctxext.NickName(ctx)
 	// 调用接口
 	text, err := shindanmaker.Shindanmaker(ctx.State["id"].(int64), name)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/logoove/sqlite"
+	_ "github.com/logoove/sqlite" // use sql
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -22,7 +22,7 @@ const dbfile = dbpath + "vtb.db"
 
 var engine = control.Register("vtbquotation", &control.Options{
 	DisableOnDefault: false,
-	Help:             "vtbquotation\n- vtb语录\n- 随机vtb\n",
+	Help:             "vtbkeyboard.moe\n- vtb语录\n- 随机vtb",
 })
 
 func init() {
@@ -42,7 +42,9 @@ func init() {
 			defer db.Close()
 			defer cancel()
 			firstStepMessage := db.GetAllFirstCategoryMessage()
-			ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(firstStepMessage))
+			if id := ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(firstStepMessage)); id == 0 {
+				ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+			}
 			// 步骤0，1，2，依次选择3个类别
 			step := 0
 			// 错误次数
@@ -104,22 +106,22 @@ func init() {
 						} else {
 							tc := db.GetThirdCategory(firstIndex, secondIndex, thirdIndex)
 							reg := regexp.MustCompile(regStr)
-							recordUrl := tc.ThirdCategoryPath
-							if recordUrl == "" {
+							recURL := tc.ThirdCategoryPath
+							if recURL == "" {
 								ctx.SendChain(message.Reply(e.MessageID), message.Text("没有内容请重新选择，三次输入错误，指令可退出重输"))
 								ctx.SendChain(message.Reply(e.MessageID), message.Text(db.GetAllFirstCategoryMessage()))
 								errorCount++
 								step = 1
 							} else {
-								if reg.MatchString(recordUrl) {
+								if reg.MatchString(recURL) {
 									// log.Println(reg.FindStringSubmatch(recordUrl)[1])
 									// log.Println(url.QueryEscape(reg.FindStringSubmatch(recordUrl)[1]))
-									recordUrl = strings.Replace(recordUrl, reg.FindStringSubmatch(recordUrl)[1], url.QueryEscape(reg.FindStringSubmatch(recordUrl)[1]), -1)
-									recordUrl = strings.Replace(recordUrl, "+", "%20", -1)
+									recURL = strings.ReplaceAll(recURL, reg.FindStringSubmatch(recURL)[1], url.QueryEscape(reg.FindStringSubmatch(recURL)[1]))
+									recURL = strings.ReplaceAll(recURL, "+", "%20")
 									// log.Println(recordUrl)
 								}
 								ctx.SendChain(message.Reply(e.MessageID), message.Text("请欣赏《"+tc.ThirdCategoryName+"》"))
-								ctx.SendChain(message.Record(recordUrl))
+								ctx.SendChain(message.Record(recURL))
 								return
 							}
 						}
@@ -143,16 +145,16 @@ func init() {
 			fc := db.GetFirstCategoryByFirstUid(tc.FirstCategoryUid)
 			if (tc != model.ThirdCategory{}) && (fc != model.FirstCategory{}) {
 				reg := regexp.MustCompile(regStr)
-				recordUrl := tc.ThirdCategoryPath
-				if reg.MatchString(recordUrl) {
+				recURL := tc.ThirdCategoryPath
+				if reg.MatchString(recURL) {
 					// log.Println(reg.FindStringSubmatch(recordUrl)[1])
 					// log.Println(url.QueryEscape(reg.FindStringSubmatch(recordUrl)[1]))
-					recordUrl = strings.Replace(recordUrl, reg.FindStringSubmatch(recordUrl)[1], url.QueryEscape(reg.FindStringSubmatch(recordUrl)[1]), -1)
-					recordUrl = strings.Replace(recordUrl, "+", "%20", -1)
+					recURL = strings.ReplaceAll(recURL, reg.FindStringSubmatch(recURL)[1], url.QueryEscape(reg.FindStringSubmatch(recURL)[1]))
+					recURL = strings.ReplaceAll(recURL, "+", "%20")
 					// log.Println(recordUrl)
 				}
 				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("请欣赏"+fc.FirstCategoryName+"的《"+tc.ThirdCategoryName+"》"))
-				ctx.SendChain(message.Record(recordUrl))
+				ctx.SendChain(message.Record(recURL))
 			}
 			db.Close()
 		})

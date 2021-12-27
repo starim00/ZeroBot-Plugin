@@ -3,34 +3,28 @@ package data
 
 import (
 	"crypto/md5"
-	"errors"
-	"io"
-	"net/http"
+	"encoding/binary"
 	"os"
-	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 
 	"github.com/FloatTech/ZeroBot-Plugin/utils/file"
 	"github.com/FloatTech/ZeroBot-Plugin/utils/process"
+	"github.com/FloatTech/ZeroBot-Plugin/utils/sql"
 )
 
 const (
 	datapath = "data/Diana"
-	pbfile   = datapath + "/text.pb"
-	pburl    = "https://codechina.csdn.net/u011570312/ZeroBot-Plugin/-/raw/master/" + pbfile
+	dbfile   = datapath + "/text.db"
 )
 
-var (
-	compo Composition
-	// Array 小作文数组指针
-	Array = &compo.Array
-	// m 小作文保存锁
-	m sync.Mutex
-	// md5s 验证重复
-	md5s []*[16]byte
-)
+var db = sql.Sqlite{DBPath: dbfile}
+
+type text struct {
+	ID   int64  `db:"id"`
+	Data string `db:"data"`
+}
 
 func init() {
 	go func() {
@@ -39,96 +33,49 @@ func init() {
 		if err != nil {
 			panic(err)
 		}
-		err1 := LoadText()
-		if err1 == nil {
-			arrl := len(*Array)
-			log.Printf("[Diana]读取%d条小作文", arrl)
-			md5s = make([]*[16]byte, arrl)
-			for i, t := range *Array {
-				m := md5.Sum(helper.StringToBytes(t))
-				md5s[i] = &m
+		err = LoadText()
+		if err == nil {
+			err = db.Create("text", &text{})
+			if err != nil {
+				panic(err)
 			}
+			c, _ := db.Count("text")
+			log.Printf("[Diana]读取%d条小作文", c)
 		} else {
-			log.Printf("[Diana]读取小作文错误：%v", err1)
+			log.Printf("[Diana]读取小作文错误：%v", err)
 		}
 	}()
 }
 
 // LoadText 加载小作文
 func LoadText() error {
-	if file.IsExist(pbfile) {
-		f, err := os.Open(pbfile)
-		if err == nil {
-			defer f.Close()
-			data, err1 := io.ReadAll(f)
-			if err1 == nil {
-				if len(data) > 0 {
-					return compo.Unmarshal(data)
-				}
-			}
-			return err1
-		}
-	} else { // 如果没有小作文，则从 url 下载
-		f, err := os.Create(pbfile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		resp, err := http.Get(pburl)
-		if err == nil {
-			defer resp.Body.Close()
-			if resp.ContentLength > 0 {
-				log.Printf("[Diana]从镜像下载小作文%d字节...", resp.ContentLength)
-				data, err := io.ReadAll(resp.Body)
-				if err == nil && len(data) > 0 {
-					_, _ = f.Write(data)
-					return compo.Unmarshal(data)
-				}
-				return err
-			}
-			return nil
-		}
-		return err
-	}
-	return nil
+	_, err := file.GetLazyData(dbfile, false, false)
+	return err
 }
 
 // AddText 添加小作文
 func AddText(txt string) error {
-	sum := md5.Sum(helper.StringToBytes(txt))
-	if txt != "" && !isin(&sum) {
-		m.Lock()
-		defer m.Unlock()
-		compo.Array = append(compo.Array, txt)
-		md5s = append(md5s, &sum)
-		return savecompo()
-	}
-	return nil
+	s := md5.Sum(helper.StringToBytes(txt))
+	i := binary.LittleEndian.Uint64(s[:8])
+	return db.Insert("text", &text{ID: int64(i), Data: txt})
 }
 
-func isin(sum *[16]byte) bool {
-	for _, t := range md5s {
-		if *t == *sum {
-			return true
-		}
+// RandText 随机小作文
+func RandText() string {
+	var t text
+	err := db.Pick("text", &t)
+	if err != nil {
+		return err.Error()
 	}
-	return false
+	return t.Data
 }
 
-// savecompo 同步保存作文
-func savecompo() error {
-	data, err := compo.Marshal()
-	if err == nil {
-		if file.IsExist(datapath) {
-			f, err1 := os.OpenFile(pbfile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-			if err1 == nil {
-				_, err2 := f.Write(data)
-				f.Close()
-				return err2
-			}
-			return err1
-		}
-		return errors.New("datapath is not exist")
+// HentaiText 发大病
+func HentaiText() string {
+	var t text
+	err := db.Find("text", &t, "where id = -3802576048116006195")
+	if err != nil {
+		return err.Error()
 	}
-	return err
+	return t.Data
 }

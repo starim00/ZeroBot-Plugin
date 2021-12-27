@@ -1,6 +1,8 @@
 package timer
 
 import (
+	"crypto/md5"
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
@@ -8,28 +10,37 @@ import (
 	"unicode"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 )
 
 // GetTimerInfo 获得标准化定时字符串
-func (ts *Timer) GetTimerInfo(grp int64) string {
+func (ts *Timer) GetTimerInfo() string {
 	if ts.Cron != "" {
-		return fmt.Sprintf("[%d]%s", grp, ts.Cron)
+		return fmt.Sprintf("[%d]%s", ts.GrpID, ts.Cron)
 	}
-	return fmt.Sprintf("[%d]%d月%d日%d周%d:%d", grp, ts.Month(), ts.Day(), ts.Week(), ts.Hour(), ts.Minute())
+	return fmt.Sprintf("[%d]%d月%d日%d周%d:%d", ts.GrpID, ts.Month(), ts.Day(), ts.Week(), ts.Hour(), ts.Minute())
+}
+
+// GetTimerID 获得标准化 ID
+func (ts *Timer) GetTimerID() uint32 {
+	key := ts.GetTimerInfo()
+	m := md5.Sum(helper.StringToBytes(key))
+	return binary.LittleEndian.Uint32(m[:4])
 }
 
 // GetFilledCronTimer 获得以cron填充好的ts
-func GetFilledCronTimer(croncmd string, alert string, img string, botqq int64) *Timer {
+func GetFilledCronTimer(croncmd string, alert string, img string, botqq, gid int64) *Timer {
 	var ts Timer
 	ts.Alert = alert
 	ts.Cron = croncmd
-	ts.Url = img
-	ts.Selfid = botqq
+	ts.URL = img
+	ts.SelfID = botqq
+	ts.GrpID = gid
 	return &ts
 }
 
 // GetFilledTimer 获得填充好的ts
-func GetFilledTimer(dateStrs []string, botqq int64, matchDateOnly bool) *Timer {
+func GetFilledTimer(dateStrs []string, botqq, grp int64, matchDateOnly bool) *Timer {
 	monthStr := []rune(dateStrs[1])
 	dayWeekStr := []rune(dateStrs[2])
 	hourStr := []rune(dateStrs[3])
@@ -43,7 +54,8 @@ func GetFilledTimer(dateStrs []string, botqq int64, matchDateOnly bool) *Timer {
 	}
 	ts.SetMonth(mon)
 	lenOfDW := len(dayWeekStr)
-	if lenOfDW == 4 { // 包括末尾的"日"
+	switch {
+	case lenOfDW == 4: // 包括末尾的"日"
 		dayWeekStr = []rune{dayWeekStr[0], dayWeekStr[2]} // 去除中间的十
 		d := chineseNum2Int(dayWeekStr)
 		if (d != -1 && d <= 0) || d > 31 { // 日期非法
@@ -51,7 +63,7 @@ func GetFilledTimer(dateStrs []string, botqq int64, matchDateOnly bool) *Timer {
 			return &ts
 		}
 		ts.SetDay(d)
-	} else if dayWeekStr[lenOfDW-1] == rune('日') { // xx日
+	case dayWeekStr[lenOfDW-1] == rune('日'): // xx日
 		dayWeekStr = dayWeekStr[:lenOfDW-1]
 		d := chineseNum2Int(dayWeekStr)
 		if (d != -1 && d <= 0) || d > 31 { // 日期非法
@@ -59,9 +71,9 @@ func GetFilledTimer(dateStrs []string, botqq int64, matchDateOnly bool) *Timer {
 			return &ts
 		}
 		ts.SetDay(d)
-	} else if dayWeekStr[0] == rune('每') { // 每周
+	case dayWeekStr[0] == rune('每'): // 每周
 		ts.SetWeek(-1)
-	} else { // 周x
+	default: // 周x
 		w := chineseNum2Int(dayWeekStr[1:])
 		if w == 7 { // 周天是0
 			w = 0
@@ -93,10 +105,10 @@ func GetFilledTimer(dateStrs []string, botqq int64, matchDateOnly bool) *Timer {
 	if !matchDateOnly {
 		urlStr := dateStrs[5]
 		if urlStr != "" { // 是图片url
-			ts.Url = urlStr[3:] // utf-8下用为3字节
-			logrus.Println("[群管]" + ts.Url)
-			if !strings.HasPrefix(ts.Url, "http") {
-				ts.Url = "illegal"
+			ts.URL = urlStr[3:] // utf-8下用为3字节
+			logrus.Println("[群管]" + ts.URL)
+			if !strings.HasPrefix(ts.URL, "http") {
+				ts.URL = "illegal"
 				logrus.Println("[群管]url非法！")
 				return &ts
 			}
@@ -104,7 +116,8 @@ func GetFilledTimer(dateStrs []string, botqq int64, matchDateOnly bool) *Timer {
 		ts.Alert = dateStrs[6]
 		ts.SetEn(true)
 	}
-	ts.Selfid = botqq
+	ts.SelfID = botqq
+	ts.GrpID = grp
 	return &ts
 }
 
@@ -116,13 +129,14 @@ func chineseNum2Int(rs []rune) int {
 	if unicode.IsDigit(rs[0]) { // 默认可能存在的第二位也为int
 		r, _ = strconv.Atoi(string(rs))
 	} else {
-		if rs[0] == mai {
+		switch {
+		case rs[0] == mai:
 			if l == 2 {
 				r = -chineseChar2Int(rs[1])
 			}
-		} else if l == 1 {
+		case l == 1:
 			r = chineseChar2Int(rs[0])
-		} else {
+		default:
 			ten := chineseChar2Int(rs[0])
 			if ten != 10 {
 				ten *= 10
@@ -141,13 +155,12 @@ func chineseNum2Int(rs []rune) int {
 func chineseChar2Int(c rune) int {
 	if c == rune('日') || c == rune('天') { // 周日/周天
 		return 7
-	} else {
-		match := []rune("零一二三四五六七八九十")
-		for i, m := range match {
-			if c == m {
-				return i
-			}
-		}
-		return 0
 	}
+	match := []rune("零一二三四五六七八九十")
+	for i, m := range match {
+		if c == m {
+			return i
+		}
+	}
+	return 0
 }

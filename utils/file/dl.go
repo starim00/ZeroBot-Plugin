@@ -16,6 +16,7 @@ var (
 )
 
 // DownloadTo 下载到路径
+//nolint: bodyclose
 func DownloadTo(url, file string, chkcrt bool) error {
 	var resp *http.Response
 	var err error
@@ -29,9 +30,9 @@ func DownloadTo(url, file string, chkcrt bool) error {
 		f, err = os.Create(file)
 		if err == nil {
 			_, err = io.Copy(f, resp.Body)
-			resp.Body.Close()
 			f.Close()
 		}
+		resp.Body.Close()
 	}
 	return err
 }

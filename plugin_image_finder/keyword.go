@@ -103,7 +103,7 @@ func soutuapi(keyword string) *resultjson {
 }
 
 // randintn 从json里的30条数据中随机获取一条返回
-func randintn(len int) int {
+func randintn(n int) int {
 	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(len)
+	return rand.Intn(n)
 }

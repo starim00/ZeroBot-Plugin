@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	cachedir = file.BOT_PATH + "/data/hs/"
+	cachedir = file.BOTPATH + "/data/hs/"
 	reqconf  = [...]string{"GET", "https://hs.fbigame.com",
 		"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36"}
 )
@@ -85,16 +85,18 @@ func init() {
 			sk = append(
 				sk,
 				message.CustomNode(
-					ctx.Event.Sender.NickName,
-					ctx.Event.UserID,
+					zero.BotConfig.NickName[0],
+					ctx.Event.SelfID,
 					imgcq, // 图片
 				),
 			)
 		}
-		ctx.SendGroupForwardMessage(
+		if id := ctx.SendGroupForwardMessage(
 			ctx.Event.GroupID,
 			sk,
-		)
+		).Get("message_id").Int(); id == 0 {
+			ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+		}
 	})
 	// 卡组
 	engine.OnRegex(`^[\s\S]*?(AAE[a-zA-Z0-9/\+=]{70,})[\s\S]*$`).
