@@ -27,7 +27,6 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_translation"  // 翻译
 
 	// 娱乐类
-	// _ "github.com/FloatTech/ZeroBot-Plugin/plugin_wtf"    // 鬼东西
 	_ "github.com/FloatTech/ZeroBot-Plugin-Gif"                 // 制图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_false"     // 服务器监控
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_book_review"  // 哀伤雪刃吧推书记录
@@ -48,6 +47,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_reborn"       // 投胎
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_shadiao"      // 沙雕app
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_shindan"      // 测定
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_wtf"          // 鬼东西
 
 	// b站相关
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_bilibili" // 查询b站用户信息
