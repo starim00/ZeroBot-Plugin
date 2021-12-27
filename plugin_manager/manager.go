@@ -441,6 +441,11 @@ func init() { // 插件主体
 				ctx.SendChain(message.Text("出错啦: ", err))
 			}
 		})
+	zero.OnRegex("满级\\S*装备").SetBlock(true).SetPriority(0).Handle(func(ctx *zero.Ctx) {
+		if ctx.Event.GroupID == 418438205 {
+			ctx.SendChain(message.Text("豆芽第一个满级职业装备麻烦私聊群主登记，然后会有人帮你搓。如果群主没回可能是在上班/摸鱼/偷鸡，可以换个时间在私聊戳他"))
+		}
+	})
 	// 入群后验证开关
 	engine.OnRegex(`^(.*)入群验证$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).SetPriority(40).
 		Handle(func(ctx *zero.Ctx) {
