@@ -5,12 +5,15 @@ import (
 	"time"
 
 	"github.com/FloatTech/AnimeAPI/shindanmaker"
+	log "github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 
-	"github.com/FloatTech/ZeroBot-Plugin/control"
-	"github.com/FloatTech/ZeroBot-Plugin/utils/ctxext"
+	control "github.com/FloatTech/zbpctrl"
+	"github.com/FloatTech/zbputils/ctxext"
+	"github.com/FloatTech/zbputils/txt2img"
 )
 
 var (
@@ -47,7 +50,18 @@ func handle(ctx *zero.Ctx) {
 		ctx.SendChain(message.Text("ERROR: ", err))
 	}
 	// TODO: 可注入
-	ctx.Send(text)
+	switch ctx.State["id"].(int64) {
+	case 587874, 162207:
+		data, err := txt2img.RenderToBase64(text, 40, 20)
+		if err != nil {
+			log.Errorln("[shindan]:", err)
+		}
+		if id := ctx.SendChain(message.Image("base64://" + helper.BytesToString(data))); id == 0 {
+			ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+		}
+	default:
+		ctx.Send(text)
+	}
 }
 
 // 传入 shindanmaker id

@@ -10,12 +10,12 @@ import (
 	// 下列插件可与 wdvxdr1123/ZeroBot v1.1.2 以上配合单独使用
 
 	// 插件控制
-	// webctrl "github.com/FloatTech/ZeroBot-Plugin/control/web" // web 后端控制
+	// webctrl "github.com/FloatTech/zbpctrl/web" // web 后端控制
 
 	// 词库类
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_atri"      // ATRI词库
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat"      // 基础词库
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_qingyunke" // 青云客
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_reply" // 人工智能回复
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_atri"     // ATRI词库
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_chat"     // 基础词库
 
 	// 实用类
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_b14"          // base16384加解密
@@ -26,8 +26,6 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_sleep_manage" // 统计睡眠时间
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_translation"  // 翻译
 
-	// 娱乐类
-	_ "github.com/FloatTech/ZeroBot-Plugin-Gif"                 // 制图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_false"     // 服务器监控
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_book_review"  // 哀伤雪刃吧推书记录
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_cangtoushi"   // 藏头诗
@@ -35,8 +33,10 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_chouxianghua" // 说抽象话
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_coser"        // 三次元小姐姐
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_cpstory"      // cp短打
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_curse"        // 骂人
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_fortune"      // 运势
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_funny"        // 笑话
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_gif"          // 制图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_hs"           // 炉石
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_juejuezi"     // 绝绝子生成器
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_minecraft"    // MCSManager
@@ -45,9 +45,11 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_novel"        // 铅笔小说网搜索
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_omikuji"      // 浅草寺求签
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_reborn"       // 投胎
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_score"        // 分数
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_shadiao"      // 沙雕app
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_shindan"      // 测定
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_wtf"          // 鬼东西
+	// 娱乐类
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_wtf" // 鬼东西
 
 	// b站相关
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin_bilibili" // 查询b站用户信息
@@ -76,14 +78,17 @@ import (
 var (
 	contents = []string{
 		"* OneBot + ZeroBot + Golang",
-		"* Version 1.2.2 - 2021-12-13 21:22:45 +0800 CST",
+		"* Version 1.2.3 - 2022-01-07 20:09:30 +0800 CST",
 		"* Copyright © 2020 - 2021 FloatTech. All Rights Reserved.",
 		"* Project: https://github.com/FloatTech/ZeroBot-Plugin",
 	}
+	nicks  = []string{"寿司", "饭团"}
 	banner = strings.Join(contents, "\n")
 	token  *string
 	url    *string
-	reg    = registry.NewRegReader("reilia.eastasia.azurecontainer.io:32664", "fumiama")
+	adana  *string
+	prefix *string
+	reg    = registry.NewRegReader("reilia.fumiama.top:32664", "fumiama")
 )
 
 func init() {
@@ -95,9 +100,12 @@ func init() {
 	// g := flag.String("g", "127.0.0.1:3000", "Set web gui listening address.")
 
 	// 直接写死 AccessToken 时，请更改下面第二个参数
-	token = flag.String("t", "xiaohanhan", "Set AccessToken of WSClient.")
+	token = flag.String("t", "", "Set AccessToken of WSClient.")
 	// 直接写死 URL 时，请更改下面第二个参数
-	url = flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
+	url = flag.String("u", "ws://127.0.0.1:6700", "xiaohanhan")
+	// 默认昵称
+	adana = flag.String("n", "寿司", "Set default nickname.")
+	prefix = flag.String("p", "/", "Set command prefix.")
 
 	flag.Parse()
 	if *h {
@@ -129,10 +137,10 @@ func printBanner() {
 
 func getKanban() string {
 	err := reg.Connect()
-	defer reg.Close()
 	if err != nil {
 		return err.Error()
 	}
+	defer reg.Close()
 	text, err := reg.Get("ZeroBot-Plugin/kanban")
 	if err != nil {
 		return err.Error()
@@ -153,13 +161,12 @@ func main() {
 		})
 	zero.RunAndBlock(
 		zero.Config{
-			NickName:      []string{"寿司", "饭团"},
-			CommandPrefix: "/",
+			NickName:      append([]string{*adana}, nicks...),
+			CommandPrefix: *prefix,
 			// SuperUsers 某些功能需要主人权限，可通过以下两种方式修改
-			// "12345678", "87654321"：通过代码写死的方式添加主人账号
-			// flag.Args()：通过命令行参数的方式添加主人账号，无需修改下方任何代码
-			SuperUsers: append([]string{"517671982"}, flag.Args()...),
-			Driver:     []zero.Driver{driver.NewWebSocketClient(*url, *token)},
+			SuperUsers: []string{"517671982"}, // 通过代码写死的方式添加主人账号
+			//SuperUsers: flag.Args(), // 通过命令行参数的方式添加主人账号
+			Driver: []zero.Driver{driver.NewWebSocketClient(*url, *token)},
 		},
 	)
 }

@@ -8,7 +8,7 @@ import (
 	reg "github.com/fumiama/go-registry"
 )
 
-var sr = reg.NewRegedit("reilia.eastasia.azurecontainer.io:32664", "fumiama", "--")
+var sr = reg.NewRegedit("reilia.fumiama.top:32664", "fumiama", "--")
 
 func TestGetHoliday(t *testing.T) {
 	registry.Connect()
@@ -24,7 +24,7 @@ func TestSetHoliday(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = SetHoliday("元旦", 1, 2022, 1, 1)
+	err = SetHoliday("元旦", 1, 2023, 1, 1)
 	if err != nil {
 		t.Fatal(err)
 	}

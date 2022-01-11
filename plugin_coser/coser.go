@@ -12,14 +12,14 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 
-	"github.com/FloatTech/ZeroBot-Plugin/control"
-	"github.com/FloatTech/ZeroBot-Plugin/utils/web"
+	control "github.com/FloatTech/zbpctrl"
+	"github.com/FloatTech/zbputils/web"
 )
 
 var (
 	engine = control.Register("coser", &control.Options{
 		DisableOnDefault: false,
-		Help:             "三次元小姐姐\n- coser\n",
+		Help:             "三次元小姐姐\n- coser",
 	})
 	prio     = 20
 	ua       = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"

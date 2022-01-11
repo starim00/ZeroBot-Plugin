@@ -1,3 +1,4 @@
+// Package cpstory cp短打
 package cpstory
 
 import (
@@ -6,9 +7,9 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
-	"github.com/FloatTech/ZeroBot-Plugin/control"
-	"github.com/FloatTech/ZeroBot-Plugin/utils/ctxext"
-	"github.com/FloatTech/ZeroBot-Plugin/utils/math"
+	control "github.com/FloatTech/zbpctrl"
+	"github.com/FloatTech/zbputils/ctxext"
+	"github.com/FloatTech/zbputils/math"
 )
 
 const (

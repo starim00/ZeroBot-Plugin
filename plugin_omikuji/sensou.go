@@ -8,11 +8,12 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/FloatTech/ZeroBot-Plugin/control"
-
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
+	"github.com/wdvxdr1123/ZeroBot/utils/helper"
+
+	control "github.com/FloatTech/zbpctrl"
+	"github.com/FloatTech/zbputils/txt2img"
 )
 
 const (
@@ -39,10 +40,13 @@ func init() { // 插件主体
 		})
 	engine.OnFullMatchGroup([]string{"解签"}).SetPriority(10).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			ctx.SendChain(
-				message.At(ctx.Event.UserID),
-				message.Text(getKujiByBango(bangoToday(ctx.Event.UserID))),
-			)
+			kujiBytes, err := txt2img.RenderToBase64(getKujiByBango(bangoToday(ctx.Event.UserID)), 40, 20)
+			if err != nil {
+				log.Errorln("[omikuji]:", err)
+			}
+			if id := ctx.SendChain(message.At(ctx.Event.UserID), message.Image("base64://"+helper.BytesToString(kujiBytes))); id == 0 {
+				ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+			}
 		})
 }
 

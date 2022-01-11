@@ -18,8 +18,9 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 
-	"github.com/FloatTech/ZeroBot-Plugin/control"
-	ub "github.com/FloatTech/ZeroBot-Plugin/utils/binary"
+	control "github.com/FloatTech/zbpctrl"
+	ub "github.com/FloatTech/zbputils/binary"
+	"github.com/FloatTech/zbputils/txt2img"
 )
 
 const (
@@ -55,7 +56,6 @@ func init() {
 			login(username, password)
 			searchKey := ctx.State["regex_matched"].([]string)[1]
 			searchHTML := search(searchKey)
-			var m message.Message
 			doc, err := htmlquery.Parse(strings.NewReader(searchHTML))
 			if err != nil {
 				log.Errorln("[novel]", err)
@@ -68,6 +68,7 @@ func init() {
 					log.Errorln("[novel]", err)
 				}
 				if len(list) != 0 {
+					text := ""
 					for _, v := range list {
 						bookName := htmlquery.InnerText(htmlquery.FindOne(v, "/dd[1]/h3/a[1]"))
 						category := htmlquery.InnerText(htmlquery.FindOne(v, "/dt/span[1]"))
@@ -83,17 +84,13 @@ func init() {
 
 						webpageURL := websiteURL + "/book/" + id + "/"
 						downloadURL := websiteURL + "/modules/article/txtarticle.php?id=" + id
-						text := fmt.Sprintf("书名:%s\n类型:%s\n作者:%s\n状态:%s\n字数:%s\n简介:%s\n更新时间:%s\n最新章节:%s\n网页链接:%s\n下载地址:%s\n", bookName, category, author, status, wordNumbers, description, updateTime, latestChapter, webpageURL, downloadURL)
-						m = append(m,
-							message.CustomNode(
-								zero.BotConfig.NickName[0],
-								ctx.Event.SelfID,
-								text),
-						)
+						text += fmt.Sprintf("书名:%s\n类型:%s\n作者:%s\n状态:%s\n字数:%s\n简介:%s\n更新时间:%s\n最新章节:%s\n网页链接:%s\n下载地址:%s\n\n", bookName, category, author, status, wordNumbers, description, updateTime, latestChapter, webpageURL, downloadURL)
 					}
-					if id := ctx.SendGroupForwardMessage(
-						ctx.Event.GroupID,
-						m).Get("message_id").Int(); id == 0 {
+					data, err := txt2img.RenderToBase64(text, 40, 20)
+					if err != nil {
+						log.Println("err:", err)
+					}
+					if id := ctx.SendChain(message.Image("base64://" + helper.BytesToString(data))); id == 0 {
 						ctx.SendChain(message.Text("ERROR: 可能被风控了"))
 					}
 				} else {
@@ -121,7 +118,13 @@ func init() {
 				webpageURL := websiteURL + "/book/" + id + "/"
 				downloadURL := websiteURL + "/modules/article/txtarticle.php?id=" + id
 				text := fmt.Sprintf("书名:%s\n类型:%s\n作者:%s\n状态:%s\n简介:%s\n更新时间:%s\n最新章节:%s\n网页链接:%s\n下载地址:%s\n", bookName, category, author, status, description, updateTime, latestChapter, webpageURL, downloadURL)
-				ctx.SendChain(message.Text(text))
+				data, err := txt2img.RenderToBase64(text, 40, 20)
+				if err != nil {
+					log.Println("err:", err)
+				}
+				if id := ctx.SendChain(message.Image("base64://" + helper.BytesToString(data))); id == 0 {
+					ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+				}
 			}
 		})
 }

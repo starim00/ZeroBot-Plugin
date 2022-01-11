@@ -28,20 +28,24 @@
 > 如果您不知道什么是 [OneBot](https://github.com/howmanybots/onebot) 或不希望运行多个程序，还可以直接前往 [gocqzbp](https://github.com/FloatTech/gocqzbp) 的 [Release](https://github.com/FloatTech/gocqzbp/releases) 页面下载单一可执行文件或前往 [Packages](https://github.com/FloatTech/gocqzbp/pkgs/container/gocqzbp) 页面使用`docker`，运行后按提示登录即可。
 
 ## 命令行参数
+> `[]`代表是可选参数
 ```bash
-zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
+zerobot [-h] [-t token] [-u url] [-n nickname] [-p prefix] [-d|w] [-g 监听地址:端口] [qq1 qq2 qq3 ...] [&]
 ```
 - **-h**: 显示帮助
 - **-t token**: 设置`AccessToken`，默认为空
 - **-u url**: 设置`Url`，默认为`ws://127.0.0.1:6700`
+- **-n nickname**: 设置默认昵称，默认为`椛椛`
+- **-p prefix**: 设置命令前缀，默认为`/`
 - **-d|w**: 开启 debug | warning 级别及以上日志输出
 - **-g 监听地址:端口**: 在 http://监听地址:端口 上开启 [webgui](https://github.com/FloatTech/bot-manager)
 - **qqs**: superusers 的 qq 号
+- **&**: 驻留在后台，必须放在最后，仅`Linux`下有效
 
 ## 功能
 > 在编译时，以下功能除插件控制外，均可通过注释`main.go`中的相应`import`而物理禁用，减小插件体积。
 > 通过插件控制，还可动态管理某个功能在某个群的打开/关闭。
-- **web管理** `import _ "github.com/FloatTech/ZeroBot-Plugin/control/web"`
+- **web管理** `import _ "github.com/FloatTech/zbpctrl/web"`
     - 开启后可执行文件大约增加 5M ，默认注释不开启。如需开启请自行编辑`main.go`取消注释
     - 需要配合 [webgui](https://github.com/FloatTech/bot-manager) 使用
 - **动态加载插件** `import _ github.com/FloatTech/ZeroBot-Plugin-Dynamic/dyloader`
@@ -118,7 +122,7 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] 抽老婆[@xxx]
 - **AIWife** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_aiwife"`
     - [x] waifu|随机waifu(从[100000个AI生成的waifu](https://www.thiswaifudoesnotexist.net/)中随机一位)
-- **gif** `import _ "github.com/tdf1939/ZeroBot-Plugin-Gif/plugin_gif"`
+- **gif** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_gif"`
     - [x] 爬[@xxx]
     - [x] 摸[@xxx]
     - [x] 搓[@xxx]
@@ -197,8 +201,9 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
     - [x] 搜卡[xxxx]
     - [x] [卡组代码xxx]
     - 注：更多搜卡指令参数：https://hs.fbigame.com/misc/searchhelp
-- **青云客** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_qingyunke"`
+- **人工智能回复** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_ai_reply"`
     - [x] @Bot 任意文本(任意一句话回复)
+    - [x] 设置回复模式[青云客|小爱]
 - **关键字搜图** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_image_finder"`
     - [x] 来张 [xxx]
 - **拼音首字母释义工具** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_nbnhhsh"`
@@ -241,6 +246,13 @@ zerobot -h -t token -u url [-d|w] [-g 监听地址:端口] qq1 qq2 qq3 ...
 - **cp短打** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_cpstory"`
     - [x] 组cp[@xxx][@xxx]
     - [x] 组cp大老师 雪乃
+- **签到得分** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_score"`
+    - [x] 签到
+    - [x] 获得签到背景[@xxx]|获得签到背景
+- **骂人** `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin_curse"`
+    - [x] 骂我
+    - [x] 大力骂我
+    - [x] @bot 他妈|公交车|你妈|操|屎|去死|快死|日|逼|尼玛|艾滋|癌症|有病|戴套|啊对对对|烦你|你爹|屮|tui|cnm
 - **TODO...**
 
 ## 使用方法
