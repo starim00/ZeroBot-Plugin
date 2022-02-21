@@ -9,22 +9,21 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
-	control "github.com/FloatTech/zbpctrl"
+	control "github.com/FloatTech/zbputils/control"
+
+	"github.com/FloatTech/zbputils/control/order"
 
 	"github.com/FloatTech/ZeroBot-Plugin/plugin_sleep_manage/model"
 )
 
-const dbpath = "data/sleep/"
-const dbfile = dbpath + "manage.db"
-const prio = 4
-
-var engine = control.Register("sleepmanage", &control.Options{
-	DisableOnDefault: false,
-	Help:             "sleepmanage\n- 早安\n- 晚安",
-})
-
 func init() {
-	engine.OnFullMatch("早安", isMorning, zero.OnlyGroup).SetBlock(true).SetPriority(prio).
+	engine := control.Register("sleepmanage", order.AcquirePrio(), &control.Options{
+		DisableOnDefault:  false,
+		Help:              "sleepmanage\n- 早安\n- 晚安",
+		PrivateDataFolder: "sleep",
+	})
+	dbfile := engine.DataFolder() + "manage.db"
+	engine.OnFullMatch("早安", isMorning, zero.OnlyGroup).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			db, err := model.Open(dbfile)
 			if err != nil {
@@ -41,7 +40,7 @@ func init() {
 			}
 			db.Close()
 		})
-	engine.OnFullMatch("晚安", isEvening, zero.OnlyGroup).SetBlock(true).SetPriority(prio).
+	engine.OnFullMatch("晚安", isEvening, zero.OnlyGroup).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			db, err := model.Open(dbfile)
 			if err != nil {

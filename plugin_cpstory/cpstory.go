@@ -4,24 +4,43 @@ package cpstory
 import (
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
-	control "github.com/FloatTech/zbpctrl"
+	control "github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
+	"github.com/FloatTech/zbputils/file"
 	"github.com/FloatTech/zbputils/math"
-)
 
-const (
-	prio = 20
+	"github.com/FloatTech/zbputils/control/order"
 )
 
 func init() {
-	engine := control.Register("cpstory", &control.Options{
+	engine := control.Register("cpstory", order.AcquirePrio(), &control.Options{
 		DisableOnDefault: false,
-		Help:             "cp短打\n- 组cp[@xxx][@xxx]\n- 组cp大老师 雪乃",
+		Help:             "cp短打\n- 组cp[@xxx][@xxx]\n- 磕cp大老师 雪乃",
+		PublicDataFolder: "CpStory",
 	})
-	engine.OnRegex("^组cp.*?(\\d+).*?(\\d+)", zero.OnlyGroup).SetBlock(true).SetPriority(prio).Handle(func(ctx *zero.Ctx) {
+
+	go func() {
+		dbpath := engine.DataFolder()
+		db.DBPath = dbpath + "cp.db"
+		defer order.DoneOnExit()()
+		// os.RemoveAll(dbpath)
+		_, _ = file.GetLazyData(db.DBPath, false, true)
+		err := db.Create("cp_story", &cpstory{})
+		if err != nil {
+			panic(err)
+		}
+		n, err := db.Count("cp_story")
+		if err != nil {
+			panic(err)
+		}
+		logrus.Printf("[cpstory]读取%d条故事", n)
+	}()
+
+	engine.OnRegex("^组cp.*?(\\d+).*?(\\d+)", zero.OnlyGroup).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		cs := getRandomCpStory()
 		gong := ctxext.CardOrNickName(ctx, math.Str2Int64(ctx.State["regex_matched"].([]string)[1]))
 		shou := ctxext.CardOrNickName(ctx, math.Str2Int64(ctx.State["regex_matched"].([]string)[2]))
@@ -31,7 +50,7 @@ func init() {
 		text = strings.ReplaceAll(text, cs.Shou, gong)
 		ctx.SendChain(message.Text(text))
 	})
-	engine.OnPrefix("组cp").SetBlock(true).SetPriority(prio + 1).Handle(func(ctx *zero.Ctx) {
+	engine.OnPrefix("磕cp").SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		cs := getRandomCpStory()
 		params := strings.Split(ctx.State["args"].(string), " ")
 		if len(params) < 2 {

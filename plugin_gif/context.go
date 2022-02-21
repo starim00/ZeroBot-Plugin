@@ -1,13 +1,12 @@
-package plugin_gif
+package gif
 
 import (
-	"bufio"
-	"io"
-	"net/http"
 	"os"
 	"strconv"
-	"strings"
+	"sync"
 
+	"github.com/FloatTech/zbputils/file"
+	"github.com/FloatTech/zbputils/img"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,76 +15,71 @@ type context struct {
 	headimgsdir []string
 }
 
-func dlchan(name string, c *chan *string) {
+func dlchan(name string, s *string, wg *sync.WaitGroup, exit func(error)) {
+	defer wg.Done()
 	target := datapath + `materials/` + name
-	_, err := os.Stat(target)
-	if err != nil {
-		download(`https://codechina.csdn.net/u011570312/imagematerials/-/raw/main/`+name, target)
+	var err error
+	if file.IsNotExist(target) {
+		err = file.DownloadTo(`https://codechina.csdn.net/u011570312/imagematerials/-/raw/main/`+name, target, true)
+		if err != nil {
+			exit(err)
+			return
+		}
+		logrus.Debugln("[gif] dl", name, "to", target, "succeeded")
 	} else {
-		logrus.Debugln("[gif] dl", name, "exists")
+		logrus.Debugln("[gif] dl", name, "exists at", target)
 	}
-	*c <- &target
+	*s = target
 }
 
-func dlblock(name string) string {
+func dlblock(name string) (string, error) {
 	target := datapath + `materials/` + name
-	_, err := os.Stat(target)
-	if err != nil {
-		download(`https://codechina.csdn.net/u011570312/imagematerials/-/raw/main/`+name, target)
+	if file.IsNotExist(target) {
+		err := file.DownloadTo(`https://codechina.csdn.net/u011570312/imagematerials/-/raw/main/`+name, target, true)
+		if err != nil {
+			return "", err
+		}
+		logrus.Debugln("[gif] dl", name, "to", target, "succeeded")
+	} else {
+		logrus.Debugln("[gif] dl", name, "exists at", target)
 	}
-	return target
+	return target, nil
 }
 
-func dlrange(prefix string, suffix string, end int) *[]chan *string {
-	c := make([]chan *string, end)
-	for i := range c {
-		c[i] = make(chan *string)
-		go dlchan(prefix+strconv.Itoa(i)+suffix, &c[i])
+func dlrange(prefix string, end int, wg *sync.WaitGroup, exit func(error)) []string {
+	if file.IsNotExist(datapath + `materials/` + prefix) {
+		err := os.MkdirAll(datapath+`materials/`+prefix, 0755)
+		if err != nil {
+			exit(err)
+			return nil
+		}
 	}
-	return &c
+	c := make([]string, end)
+	for i := range c {
+		wg.Add(1)
+		go dlchan(prefix+"/"+strconv.Itoa(i)+".png", &c[i], wg, exit)
+	}
+	return c
 }
 
 // 新的上下文
 func newContext(user int64) *context {
 	c := new(context)
 	c.usrdir = datapath + "users/" + strconv.FormatInt(user, 10) + `/`
-	os.MkdirAll(c.usrdir, 0755)
+	_ = os.MkdirAll(c.usrdir, 0755)
 	c.headimgsdir = make([]string, 2)
 	c.headimgsdir[0] = c.usrdir + "0.gif"
 	c.headimgsdir[1] = c.usrdir + "1.gif"
 	return c
 }
 
-// 下载图片
-func download(url, dlpath string) error {
-	// 创建目录
-	var List = strings.Split(dlpath, `/`)
-	err := os.MkdirAll(strings.TrimSuffix(dlpath, List[len(List)-1]), 0755)
-	if err != nil {
-		logrus.Errorln("[gif] mkdir err:", err)
-		return err
+func loadFirstFrames(paths []string, size int) (imgs []*img.ImgFactory, err error) {
+	imgs = make([]*img.ImgFactory, size)
+	for i := range imgs {
+		imgs[i], err = img.LoadFirstFrame(paths[i], 0, 0)
+		if err != nil {
+			return nil, err
+		}
 	}
-	res, err := http.Get(url)
-	if err != nil {
-		logrus.Errorln("[gif] http get err:", err)
-		return err
-	}
-	// 获得get请求响应的reader对象
-	reader := bufio.NewReaderSize(res.Body, 32*1024)
-	// 创建文件
-	file, err := os.Create(dlpath)
-	if err != nil {
-		logrus.Errorln("[gif] create file err:", err)
-		return err
-	}
-	// 获得文件的writer对象
-	writer := bufio.NewWriter(file)
-	written, err := io.Copy(writer, reader)
-	if err != nil {
-		logrus.Errorln("[gif] copy err:", err)
-		return err
-	}
-	res.Body.Close()
-	logrus.Debugln("[gif] dl len:", written)
-	return nil
+	return imgs, nil
 }

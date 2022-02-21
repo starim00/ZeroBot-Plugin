@@ -3,59 +3,85 @@ package fortune
 
 import (
 	"archive/zip"
-	"bytes"
-	"encoding/base64"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
-	"image/jpeg"
+	"image"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
-	"github.com/fogleman/gg"
+	"github.com/fogleman/gg" // 注册了 jpg png gif
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"
 
-	control "github.com/FloatTech/zbpctrl"
+	control "github.com/FloatTech/zbputils/control"
+	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/file"
+	"github.com/FloatTech/zbputils/img/pool"
+	"github.com/FloatTech/zbputils/img/writer"
 	"github.com/FloatTech/zbputils/math"
+
+	"github.com/FloatTech/zbputils/control/order"
+)
+
+const (
+	// 底图缓存位置
+	images = "data/Fortune/"
+	// 基础文件位置
+	omikujson = "data/Fortune/text.json"
+	// 字体文件位置
+	font = "data/Font/sakura.ttf"
+	// 生成图缓存位置
+	cache = images + "cache/"
 )
 
 var (
-	// 底图缓存位置
-	base = "data/fortune/"
-	// 素材下载网站
-	site = "https://pan.dihe.moe/fortune/"
-	// 底图类型列表：车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌
-	// 				公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师
-	table = [...]string{"车万", "DC4", "爱因斯坦", "星空列车", "樱云之恋", "富婆妹", "李清歌", "公主连结", "原神", "明日方舟", "碧蓝航线", "碧蓝幻想", "战双", "阴阳师"}
+	// 底图类型列表
+	table = [...]string{"车万", "DC4", "爱因斯坦", "星空列车", "樱云之恋", "富婆妹", "李清歌", "公主连结", "原神", "明日方舟", "碧蓝航线", "碧蓝幻想", "战双", "阴阳师", "赛马娘"}
 	// 映射底图与 index
 	index = make(map[string]uint8)
-	// 下载锁
-	dlmu sync.Mutex
+	// 签文
+	omikujis []map[string]string
 )
 
 func init() {
-	for i, s := range table {
-		index[s] = uint8(i)
-	}
-	err := os.MkdirAll(base, 0755)
-	if err != nil {
-		panic(err)
-	}
 	// 插件主体
-	en := control.Register("fortune", &control.Options{
+	en := control.Register("fortune", order.AcquirePrio(), &control.Options{
 		DisableOnDefault: false,
 		Help: "每日运势: \n" +
-			"- 运势|抽签\n" +
-			"- 设置底图[车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌 公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师]",
+			"- 运势 | 抽签\n" +
+			"- 设置底图[车万 | DC4 | 爱因斯坦 | 星空列车 | 樱云之恋 | 富婆妹 | 李清歌 | 公主连结 | 原神 | 明日方舟 | 碧蓝航线 | 碧蓝幻想 | 战双 | 阴阳师 | 赛马娘]",
+		PublicDataFolder: "Fortune",
 	})
-	en.OnRegex(`^设置底图(.*)`).SetBlock(true).SecondPriority().
+	go func() {
+		defer order.DoneOnExit()()
+		for i, s := range table {
+			index[s] = uint8(i)
+		}
+		_ = os.RemoveAll(cache)
+		err := os.MkdirAll(cache, 0755)
+		if err != nil {
+			panic(err)
+		}
+		data, err := file.GetLazyData(omikujson, true, false)
+		if err != nil {
+			panic(err)
+		}
+		err = json.Unmarshal(data, &omikujis)
+		if err != nil {
+			panic(err)
+		}
+		_, err = file.GetLazyData(font, false, true)
+		if err != nil {
+			panic(err)
+		}
+	}()
+	en.OnRegex(`^设置底图\s?(.*)`).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			gid := ctx.Event.GroupID
 			if gid <= 0 {
@@ -66,7 +92,7 @@ func init() {
 			if ok {
 				c, ok := control.Lookup("fortune")
 				if ok {
-					err = c.SetData(gid, int64(i)&0xff)
+					err := c.SetData(gid, int64(i)&0xff)
 					if err != nil {
 						ctx.SendChain(message.Text("设置失败:", err))
 						return
@@ -79,38 +105,8 @@ func init() {
 			}
 			ctx.SendChain(message.Text("没有这个底图哦～"))
 		})
-	en.OnFullMatchGroup([]string{"运势", "抽签"}).SetBlock(true).SecondPriority().
+	en.OnFullMatchGroup([]string{"运势", "抽签"}).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			// 检查签文文件是否存在
-			mikuji := base + "运势签文.json"
-			if file.IsNotExist(mikuji) {
-				dlmu.Lock()
-				if file.IsNotExist(mikuji) {
-					ctx.SendChain(message.Text("正在下载签文文件，请稍后..."))
-					err := file.DownloadTo(site+"运势签文.json", mikuji, false)
-					if err != nil {
-						ctx.SendChain(message.Text("ERROR: ", err))
-						return
-					}
-					ctx.SendChain(message.Text("下载签文文件完毕"))
-				}
-				dlmu.Unlock()
-			}
-			// 检查字体文件是否存在
-			ttf := base + "sakura.ttf"
-			if file.IsNotExist(ttf) {
-				dlmu.Lock()
-				if file.IsNotExist(ttf) {
-					ctx.SendChain(message.Text("正在下载字体文件，请稍后..."))
-					err := file.DownloadTo(site+"sakura.ttf", ttf, false)
-					if err != nil {
-						ctx.SendChain(message.Text("ERROR: ", err))
-						return
-					}
-					ctx.SendChain(message.Text("下载字体文件完毕"))
-				}
-				dlmu.Unlock()
-			}
 			// 获取该群背景类型，默认车万
 			kind := "车万"
 			gid := ctx.Event.GroupID
@@ -127,125 +123,98 @@ func init() {
 				}
 			}
 			// 检查背景图片是否存在
-			folder := base + kind
-			if file.IsNotExist(folder) {
-				dlmu.Lock()
-				if file.IsNotExist(folder) {
-					ctx.SendChain(message.Text("正在下载背景图片，请稍后..."))
-					zipfile := kind + ".zip"
-					zipcache := base + zipfile
-					err := file.DownloadTo(site+zipfile, zipcache, false)
-					if err != nil {
-						ctx.SendChain(message.Text("ERROR: ", err))
-						return
-					}
-					ctx.SendChain(message.Text("下载背景图片完毕"))
-					err = unpack(zipcache, folder+"/")
-					if err != nil {
-						ctx.SendChain(message.Text("ERROR: ", err))
-						return
-					}
-					ctx.SendChain(message.Text("解压背景图片完毕"))
-					// 释放空间
-					os.Remove(zipcache)
-				}
-				dlmu.Unlock()
+			zipfile := images + kind + ".zip"
+			_, err := file.GetLazyData(zipfile, false, false)
+			if err != nil {
+				ctx.SendChain(message.Text("ERROR: ", err))
+				return
 			}
+
 			// 生成种子
 			t, _ := strconv.ParseInt(time.Now().Format("20060102"), 10, 64)
 			seed := ctx.Event.UserID + t
+
 			// 随机获取背景
-			background, err := randimage(folder+"/", seed)
+			background, index, err := randimage(zipfile, seed)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
+
 			// 随机获取签文
-			title, text, err := randtext(mikuji, seed)
+			title, text := randtext(seed)
+			digest := md5.Sum(helper.StringToBytes(zipfile + strconv.Itoa(index) + title + text))
+			cachefile := cache + hex.EncodeToString(digest[:])
+
+			m, err := pool.GetImage(cachefile)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			// 绘制背景
-			d, err := draw(background, title, text)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
+				logrus.Debugln("[fortune]", err)
+				if file.IsNotExist(cachefile) {
+					f, err := os.Create(cachefile)
+					if err != nil {
+						ctx.SendChain(message.Text("ERROR: ", err))
+						return
+					}
+					_, err = draw(background, title, text, f)
+					_ = f.Close()
+					if err != nil {
+						ctx.SendChain(message.Text("ERROR: ", err))
+						return
+					}
+				}
+				m.SetFile(file.BOTPATH + "/" + cachefile)
+				hassent, err := m.Push(ctxext.Send(ctx), ctxext.GetMessage(ctx))
+				if hassent {
+					return
+				}
+				if err != nil {
+					ctx.SendChain(message.Text("ERROR: ", err))
+					return
+				}
 			}
 			// 发送图片
-			ctx.SendChain(message.Image("base64://" + helper.BytesToString(d)))
+			id := ctx.SendChain(message.Image(m.String()))
+			if id.ID() == 0 {
+				id = ctx.SendChain(message.Image(m.String()).Add("cache", "0"))
+				if id.ID() == 0 {
+					ctx.SendChain(message.Text("图片发送失败，可能被风控了~"))
+				}
+			}
 		})
 }
 
-// @function unpack 解压资源包
-// @param tgt 压缩文件位置
-// @param dest 解压位置
-// @return 错误信息
-func unpack(tgt, dest string) error {
-	// 路径目录不存在则创建目录
-	if file.IsNotExist(dest) {
-		if err := os.MkdirAll(dest, 0755); err != nil {
-			panic(err)
-		}
-	}
-	reader, err := zip.OpenReader(tgt)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-	// 遍历解压到文件
-	for _, file := range reader.File {
-		// 打开解压文件
-		rc, err := file.Open()
-		if err != nil {
-			return err
-		}
-		// 打开目标文件
-		w, err := os.OpenFile(dest+file.Name, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
-		if err != nil {
-			rc.Close()
-			return err
-		}
-		// 复制到文件
-		_, err = io.Copy(w, rc)
-		rc.Close()
-		w.Close()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// @function randimage 随机选取文件夹下的文件
-// @param path 文件夹路径
+// @function randimage 随机选取zip内的文件
+// @param path zip路径
 // @param seed 随机数种子
 // @return 文件路径 & 错误信息
-func randimage(path string, seed int64) (string, error) {
-	rd, err := ioutil.ReadDir(path)
+func randimage(path string, seed int64) (im image.Image, index int, err error) {
+	reader, err := zip.OpenReader(path)
 	if err != nil {
-		return "", err
+		return
 	}
-	rand.Seed(seed)
-	return path + rd[rand.Intn(len(rd))].Name(), nil
+	defer reader.Close()
+
+	r := rand.New(rand.NewSource(seed))
+	index = r.Intn(len(reader.File))
+	file := reader.File[index]
+	f, err := file.Open()
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	im, _, err = image.Decode(f)
+	return
 }
 
 // @function randtext 随机选取签文
 // @param file 文件路径
 // @param seed 随机数种子
 // @return 签名 & 签文 & 错误信息
-func randtext(file string, seed int64) (string, string, error) {
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		return "", "", err
-	}
-	temp := []map[string]string{}
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return "", "", err
-	}
-	rand.Seed(seed)
-	r := rand.Intn(len(temp))
-	return temp[r]["title"], temp[r]["content"], nil
+func randtext(seed int64) (string, string) {
+	r := rand.New(rand.NewSource(seed))
+	i := r.Intn(len(omikujis))
+	return omikujis[i]["title"], omikujis[i]["content"]
 }
 
 // @function draw 绘制运势图
@@ -254,29 +223,24 @@ func randtext(file string, seed int64) (string, string, error) {
 // @param title 签名
 // @param text 签文
 // @return 错误信息
-func draw(background, title, text string) ([]byte, error) {
-	// 加载背景
-	back, err := gg.LoadImage(background)
-	if err != nil {
-		return nil, err
-	}
+func draw(back image.Image, title, txt string, f io.Writer) (int64, error) {
 	canvas := gg.NewContext(back.Bounds().Size().Y, back.Bounds().Size().X)
 	canvas.DrawImage(back, 0, 0)
 	// 写标题
 	canvas.SetRGB(1, 1, 1)
-	if err := canvas.LoadFontFace(base+"sakura.ttf", 45); err != nil {
-		return nil, err
+	if err := canvas.LoadFontFace(font, 45); err != nil {
+		return -1, err
 	}
 	sw, _ := canvas.MeasureString(title)
 	canvas.DrawString(title, 140-sw/2, 112)
 	// 写正文
 	canvas.SetRGB(0, 0, 0)
-	if err := canvas.LoadFontFace(base+"sakura.ttf", 23); err != nil {
-		return nil, err
+	if err := canvas.LoadFontFace(font, 23); err != nil {
+		return -1, err
 	}
 	tw, th := canvas.MeasureString("测")
 	tw, th = tw+10, th+10
-	r := []rune(text)
+	r := []rune(txt)
 	xsum := rowsnum(len(r), 9)
 	switch xsum {
 	default:
@@ -300,17 +264,7 @@ func draw(background, title, text string) ([]byte, error) {
 			}
 		}
 	}
-	// 转成 base64
-	buffer := new(bytes.Buffer)
-	encoder := base64.NewEncoder(base64.StdEncoding, buffer)
-	var opt jpeg.Options
-	opt.Quality = 70
-	err = jpeg.Encode(encoder, canvas.Image(), &opt)
-	if err != nil {
-		return nil, err
-	}
-	encoder.Close()
-	return buffer.Bytes(), nil
+	return writer.WriteTo(canvas.Image(), f)
 }
 
 func offest(total, now int, distance float64) float64 {
