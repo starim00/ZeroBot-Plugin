@@ -2,8 +2,9 @@
 package chat
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -30,13 +31,14 @@ func init() { // 插件主体
 		Handle(func(ctx *zero.Ctx) {
 			var nickname = zero.BotConfig.NickName[0]
 			time.Sleep(time.Second * 1)
+			n, _ := rand.Int(rand.Reader, big.NewInt(int64(4)))
 			ctx.SendChain(message.Text(
 				[]string{
 					nickname + "在此，有何贵干~",
 					"(っ●ω●)っ在~",
 					"这里是" + nickname + "(っ●ω●)っ",
 					nickname + "不在呢~",
-				}[rand.Intn(4)],
+				}[n.Int64()],
 			))
 		})
 	// 戳一戳
@@ -94,7 +96,8 @@ func init() { // 插件主体
 		scope, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
 		result := make([]int, count)
 		for i := 0; i < count; i++ {
-			result[i] = rand.Intn(scope)
+			n, _ := rand.Int(rand.Reader, big.NewInt(int64(scope)))
+			result[i] = int(n.Int64()) + 1
 		}
 
 		sum := 0
