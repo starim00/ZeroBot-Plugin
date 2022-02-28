@@ -2,8 +2,10 @@
 package chat
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	control "github.com/FloatTech/zbputils/control"
@@ -87,6 +89,20 @@ func init() { // 插件主体
 				))
 			}
 		})
+	engine.OnRegex(`^.(\d+)d(\d+)$`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+		count, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[1])
+		scope, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
+		result := make([]int, count)
+		for i := 0; i < count; i++ {
+			result[i] = rand.Intn(scope)
+		}
+
+		sum := 0
+		for i := range result {
+			sum += result[i]
+		}
+		ctx.SendChain(message.Text(sum, " ", strings.Join(strings.Fields(fmt.Sprint(result)), ",")))
+	})
 	engine.OnFullMatch(`群温度`).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			if _, exist := AirConditTemp[ctx.Event.GroupID]; !exist {
