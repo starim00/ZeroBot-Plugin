@@ -15,14 +15,13 @@ import (
 	"github.com/FloatTech/AnimeAPI/yandex"
 
 	"github.com/FloatTech/zbputils/control"
-	"github.com/FloatTech/zbputils/control/order"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/file"
 	"github.com/FloatTech/zbputils/img/pool"
 )
 
 func init() { // 插件主体
-	engine := control.Register("saucenao", order.AcquirePrio(), &control.Options{
+	engine := control.Register("saucenao", &control.Options{
 		DisableOnDefault: false,
 		Help: "搜图\n" +
 			"- 以图搜图 | 搜索图片 | 以图识图[图片]\n" +
@@ -36,7 +35,7 @@ func init() { // 插件主体
 			// 获取P站插图信息
 			illust, err := pixiv.Works(id)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
+				ctx.SendChain(message.Text("ERROR:", err))
 				return
 			}
 			if illust.Pid > 0 {
@@ -91,7 +90,7 @@ func init() { // 插件主体
 			for _, pic := range ctx.State["image_url"].([]string) {
 				fmt.Println(pic)
 				if result, err := saucenao.SauceNAO(pic); err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
+					ctx.SendChain(message.Text("ERROR:", err))
 				} else {
 					// 返回SauceNAO的结果
 					ctx.SendChain(
@@ -110,7 +109,7 @@ func init() { // 插件主体
 					continue
 				}
 				if result, err := yandex.Yandex(pic); err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
+					ctx.SendChain(message.Text("ERROR:", err))
 				} else {
 					ctx.SendChain(
 						message.Text("也许是这个？"),
@@ -126,7 +125,7 @@ func init() { // 插件主体
 				}
 				// 不论结果如何都执行 ascii2d 搜索
 				if result, err := ascii2d.Ascii2d(pic); err != nil {
-					ctx.SendChain(message.Text("ERROR: ", err))
+					ctx.SendChain(message.Text("ERROR:", err))
 					continue
 				} else {
 					msg := message.Message{ctxext.FakeSenderForwardNode(ctx, message.Text("ascii2d搜图结果"))}
@@ -147,7 +146,7 @@ func init() { // 插件主体
 						ctx.Event.GroupID,
 						msg,
 					).Get("message_id").Int(); id == 0 {
-						ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+						ctx.SendChain(message.Text("ERROR:可能被风控了"))
 					}
 				}
 			}

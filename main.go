@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/FloatTech/ZeroBot-Plugin/kanban" // 在最前打印 banner
@@ -73,12 +75,14 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/drift_bottle"   // 漂流瓶
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/emojimix"       // 合成emoji
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/epidemic"       // 城市疫情查询
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/font"           // 渲染任意文字到图片
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/fortune"        // 运势
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/funny"          // 笑话
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/genshin"        // 原神抽卡
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/gif"            // 制图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/github"         // 搜索GitHub仓库
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/hs"             // 炉石
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/hyaku"          // 百人一首
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/image_finder"   // 关键字搜图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/inject"         // 注入指令
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/jandan"         // 煎蛋网无聊图
@@ -106,6 +110,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/translation"    // 翻译
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/vtb_quotation"  // vtb语录
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wangyiyun"      // 网易云音乐热评
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/word_count"     // 聊天热词
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wordle"         // 猜单词
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ymgal"          // 月幕galgame
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/zaobao"         // 早报
@@ -155,31 +160,26 @@ import (
 	// -----------------------以上为内置依赖，勿动------------------------ //
 )
 
-var (
-	nicks  = []string{"寿司"}
-	token  *string
-	url    *string
-	adana  *string
-	prefix *string
-)
-
 func init() {
+	sus := make([]int64, 0, 16)
 	// 解析命令行参数
+	// 输入 `-g 监听地址:端口` 指定 gui 访问地址，默认 127.0.0.1:3000
+	// g := flag.String("g", "127.0.0.1:3000", "Set web gui listening address.")
 	d := flag.Bool("d", false, "Enable debug level log and higher.")
 	w := flag.Bool("w", false, "Enable warning level log and higher.")
 	h := flag.Bool("h", false, "Display this help.")
-	// 解析命令行参数，输入 `-g 监听地址:端口` 指定 gui 访问地址，默认 127.0.0.1:3000
-	// g := flag.String("g", "127.0.0.1:3000", "Set web gui listening address.")
-
 	// 直接写死 AccessToken 时，请更改下面第二个参数
-	token = flag.String("t", "xiaohanhan", "Set AccessToken of WSClient.")
+	token := flag.String("t", "xiaohanhan", "Set AccessToken of WSClient.")
 	// 直接写死 URL 时，请更改下面第二个参数
-	url = flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
+	url := flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
 	// 默认昵称
-	adana = flag.String("n", "寿司", "Set default nickname.")
-	prefix = flag.String("p", "/", "Set command prefix.")
+	adana := flag.String("n", "寿司", "Set default nickname.")
+	prefix := flag.String("p", "/", "Set command prefix.")
+	runcfg := flag.String("c", "", "Run from config file.")
+	save := flag.String("s", "", "Save default config to file and exit.")
 
 	flag.Parse()
+
 	if *h {
 		kanban.PrintBanner()
 		fmt.Println("Usage:")
@@ -194,8 +194,61 @@ func init() {
 		}
 	}
 
+	for _, s := range flag.Args() {
+		i, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			continue
+		}
+		sus = append(sus, i)
+	}
+
+	// 通过代码写死的方式添加主人账号
+	// sus = append(sus, 12345678)
+	// sus = append(sus, 87654321)
+
 	// 启用 gui
 	// webctrl.InitGui(*g)
+
+	if *runcfg != "" {
+		f, err := os.Open(*runcfg)
+		if err != nil {
+			panic(err)
+		}
+		config.W = make([]*driver.WSClient, 0, 2)
+		err = json.NewDecoder(f).Decode(&config)
+		f.Close()
+		if err != nil {
+			panic(err)
+		}
+		config.Z.Driver = make([]zero.Driver, len(config.W))
+		for i, w := range config.W {
+			config.Z.Driver[i] = w
+		}
+		logrus.Infoln("[main] 从", *runcfg, "读取配置文件")
+		return
+	}
+
+	config.W = []*driver.WSClient{driver.NewWebSocketClient(*url, *token)}
+	config.Z = zero.Config{
+		NickName:      append([]string{*adana}, "ATRI", "atri", "亚托莉", "アトリ"),
+		CommandPrefix: *prefix,
+		SuperUsers:    sus,
+		Driver:        []zero.Driver{config.W[0]},
+	}
+
+	if *save != "" {
+		f, err := os.Create(*save)
+		if err != nil {
+			panic(err)
+		}
+		err = json.NewEncoder(f).Encode(&config)
+		f.Close()
+		if err != nil {
+			panic(err)
+		}
+		logrus.Infoln("[main] 配置文件已保存到", *save)
+		os.Exit(0)
+	}
 }
 
 func main() {
@@ -209,15 +262,5 @@ func main() {
 		Handle(func(ctx *zero.Ctx) {
 			ctx.SendChain(message.Text(kanban.Kanban()))
 		})
-	zero.RunAndBlock(
-		zero.Config{
-			NickName:      append([]string{*adana}, nicks...),
-			CommandPrefix: *prefix,
-			// SuperUsers 某些功能需要主人权限，可通过以下两种方式修改
-			SuperUsers: []string{"517671982"}, // 通过代码写死的方式添加主人账号
-			// SuperUsers: flag.Args(), // 通过命令行参数的方式添加主人账号
-			Driver: []zero.Driver{driver.NewWebSocketClient(*url, *token)},
-		},
-		process.GlobalInitMutex.Unlock,
-	)
+	zero.RunAndBlock(config.Z, process.GlobalInitMutex.Unlock)
 }

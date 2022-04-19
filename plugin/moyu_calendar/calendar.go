@@ -13,7 +13,6 @@ import (
 	"time"
 
 	control "github.com/FloatTech/zbputils/control"
-	"github.com/FloatTech/zbputils/control/order"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
@@ -26,7 +25,7 @@ var weixin = regexp.MustCompile(`url \+= '(.+)';`)
 var client = &http.Client{}
 
 func init() {
-	control.Register("moyucalendar", order.AcquirePrio(), &control.Options{
+	control.Register("moyucalendar", &control.Options{
 		DisableOnDefault: true,
 		Help: "摸鱼人日历\n" +
 			"- /启用 moyucalendar\n" +
@@ -38,17 +37,17 @@ func init() {
 			title := fmt.Sprintf("摸鱼人日历 %d月%d日", time.Now().Month(), time.Now().Day())
 			sg, cookies, err := sougou(title, "摸鱼人日历", ua)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
+				ctx.SendChain(message.Text("ERROR:", err))
 				return
 			}
 			wx, err := redirect(sg, cookies, ua)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
+				ctx.SendChain(message.Text("ERROR:", err))
 				return
 			}
 			image, err := calendar(wx, ua)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
+				ctx.SendChain(message.Text("ERROR:", err))
 				return
 			}
 			ctx.SendChain(message.Image(image))

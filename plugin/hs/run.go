@@ -16,8 +16,6 @@ import (
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/file"
 	"github.com/FloatTech/zbputils/web"
-
-	"github.com/FloatTech/zbputils/control/order"
 )
 
 var reqconf = [...]string{"GET", "https://hs.fbigame.com",
@@ -43,7 +41,7 @@ const (
 )
 
 func init() {
-	engine := control.Register("hs", order.AcquirePrio(), &control.Options{
+	engine := control.Register("hs", &control.Options{
 		DisableOnDefault: false,
 		Help: "炉石\n" +
 			"- 搜卡[xxxx]\n" +
@@ -83,7 +81,7 @@ func init() {
 			ctx.Event.GroupID,
 			sk,
 		).Get("message_id").Int(); id == 0 {
-			ctx.SendChain(message.Text("ERROR: 可能被风控了"))
+			ctx.SendChain(message.Text("ERROR:可能被风控了"))
 		}
 	})
 	// 卡组
