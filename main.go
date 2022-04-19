@@ -171,7 +171,7 @@ func init() {
 	// 直接写死 AccessToken 时，请更改下面第二个参数
 	token := flag.String("t", "xiaohanhan", "Set AccessToken of WSClient.")
 	// 直接写死 URL 时，请更改下面第二个参数
-	url := flag.String("u", "ws://127.0.0.1:6700", "Set Url of WSClient.")
+	url := flag.String("u", "ws://47.241.122.180:6700", "Set Url of WSClient.")
 	// 默认昵称
 	adana := flag.String("n", "寿司", "Set default nickname.")
 	prefix := flag.String("p", "/", "Set command prefix.")
@@ -203,7 +203,7 @@ func init() {
 	}
 
 	// 通过代码写死的方式添加主人账号
-	// sus = append(sus, 12345678)
+	sus = append(sus, 517671982)
 	// sus = append(sus, 87654321)
 
 	// 启用 gui
@@ -230,7 +230,7 @@ func init() {
 
 	config.W = []*driver.WSClient{driver.NewWebSocketClient(*url, *token)}
 	config.Z = zero.Config{
-		NickName:      append([]string{*adana}, "ATRI", "atri", "亚托莉", "アトリ"),
+		NickName:      append([]string{*adana}),
 		CommandPrefix: *prefix,
 		SuperUsers:    sus,
 		Driver:        []zero.Driver{config.W[0]},

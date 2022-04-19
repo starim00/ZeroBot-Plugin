@@ -128,12 +128,16 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("残念~ " + nickname + " 被放逐"))
 		})
 	// 退出群聊
-	engine.OnRegex(`^退出群聊.*?(\d+)`, zero.OnlyToMe, zero.SuperUserPermission).SetBlock(true).
+	engine.OnRegex(`^退出群聊.*?(\d+)`, zero.OnlyToMe, zero.AdminPermission).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			ctx.SetGroupLeave(
-				math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 要退出的群的群号
-				true,
-			)
+			groupId := ctx.State["regex_matched"].([]string)[1]
+			if zero.SuperUserPermission(ctx) || (ctx.Event.Sender.Role != "member" && groupId == strconv.FormatInt(ctx.Event.GroupID, 10)) {
+				ctx.SetGroupLeave(
+					math.Str2Int64(ctx.State["regex_matched"].([]string)[1]), // 要退出的群的群号
+					true,
+				)
+			}
+			ctx.SendChain(message.Text("你还想退别人的群？？"))
 		})
 	// 开启全体禁言
 	engine.OnRegex(`^开启全员禁言$`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).
