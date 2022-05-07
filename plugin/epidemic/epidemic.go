@@ -2,14 +2,13 @@
 package epidemic
 
 import (
-	"encoding/json"
-
-	zero "github.com/wdvxdr1123/ZeroBot"
-	"github.com/wdvxdr1123/ZeroBot/message"
-
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/web"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/json-iterator/go/extra"
+	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 const (
@@ -116,7 +115,8 @@ func queryEpidemic(findCityName string) (citydata *area, times string, err error
 		return
 	}
 	var r result
-	err = json.Unmarshal(data, &r)
+	extra.RegisterFuzzyDecoders()
+	err = jsoniter.Unmarshal(data, &r)
 	if err != nil {
 		return
 	}
