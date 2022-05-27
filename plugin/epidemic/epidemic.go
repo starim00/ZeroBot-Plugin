@@ -2,13 +2,14 @@
 package epidemic
 
 import (
+	"encoding/json"
+
+	zero "github.com/wdvxdr1123/ZeroBot"
+	"github.com/wdvxdr1123/ZeroBot/message"
+
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/web"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/json-iterator/go/extra"
-	zero "github.com/wdvxdr1123/ZeroBot"
-	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 const (
@@ -18,12 +19,9 @@ const (
 
 // result 疫情查询结果
 type result struct {
-	Data disease `json:"data"`
-}
-
-// disease 疾病数据
-type disease struct {
-	DiseaseH5Shelf epidemic `json:"diseaseh5Shelf"`
+	Data struct {
+		Epidemic epidemic `json:"diseaseh5Shelf"`
+	} `json:"data"`
 }
 
 // epidemic 疫情数据
@@ -115,15 +113,10 @@ func queryEpidemic(findCityName string) (citydata *area, times string, err error
 		return
 	}
 	var r result
-	extra.RegisterFuzzyDecoders()
-	err = jsoniter.Unmarshal(data, &r)
+	err = json.Unmarshal(data, &r)
 	if err != nil {
 		return
 	}
-
-	if err != nil {
-		return
-	}
-	citydata = rcity(r.Data.DiseaseH5Shelf.AreaTree[0], findCityName)
-	return citydata, r.Data.DiseaseH5Shelf.LastUpdateTime, nil
+	citydata = rcity(r.Data.Epidemic.AreaTree[0], findCityName)
+	return citydata, r.Data.Epidemic.LastUpdateTime, nil
 }
