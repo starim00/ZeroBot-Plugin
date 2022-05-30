@@ -3,7 +3,6 @@ package bilibili
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -86,14 +85,14 @@ func followings(uid string) (s string, err error) {
 	if err != nil {
 		return
 	}
-	json := gjson.ParseBytes(body)
-	s = json.Get("data.list.#.uname").Raw
-	if json.Get("code").Int() == -101 {
+	j := gjson.ParseBytes(body)
+	s = j.Get("data.list.#.uname").Raw
+	if j.Get("code").Int() == -101 {
 		err = errNeedCookie
 		return
 	}
-	if json.Get("code").Int() != 0 {
-		err = errors.New(json.Get("message").String())
+	if j.Get("code").Int() != 0 {
+		err = errors.New(j.Get("message").String())
 		return
 	}
 	return
@@ -104,6 +103,7 @@ type userinfo struct {
 	Mid        string  `json:"mid"`
 	Face       string  `json:"face"`
 	Fans       int64   `json:"fans"`
+	Regtime    int64   `json:"regtime"`
 	Attentions []int64 `json:"attentions"`
 }
 
@@ -166,7 +166,6 @@ func medalwall(uid string) (result []medal, err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println("medalwall:", binary.BytesToString(data))
 	j := gjson.ParseBytes(data)
 	if j.Get("code").Int() == -101 {
 		err = errNeedCookie

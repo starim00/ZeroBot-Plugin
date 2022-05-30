@@ -1,30 +1,37 @@
 <div align="center">
-  <img src=".github/gopher.jpg" width = "200" height = "150" alt="Gopher"><br>
+  <a href="https://crypko.ai/crypko/5k8HyUVTq5421/">
+  <img src=".github/黒金.jpg" alt="看板娘" width = "400">
+  </a><br>
+
   <h1>ZeroBot-Plugin</h1>
   ZeroBot-Plugin 是 ZeroBot 的 实用插件合集<br><br>
 
-  <img src="http://sayuri.fumiama.top/cmoe?name=ZeroBot-Plugin&theme=r34" />
 
-[![GOCQ](https://img.shields.io/badge/OneBot-MiraiGo-green.svg?style=social&logo=appveyor)](https://github.com/Mrs4s/go-cqhttp)
-[![OICQ](https://img.shields.io/badge/OneBot-OICQ-green.svg?style=social&logo=appveyor)](https://github.com/takayama-lily/node-onebot)
-[![MIRAI](https://img.shields.io/badge/OneBot-Mirai-green.svg?style=social&logo=appveyor)](https://github.com/yyuueexxiinngg/onebot-kotlin)
+  <img src="http://cmoe.azurewebsites.net/cmoe?name=ZeroBot-Plugin&theme=r34" /><br>
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/FloatTech/ZeroBot-Plugin?style=flat-square&logo=go)](https://goreportcard.com/report/github.com/github.com/FloatTech/ZeroBot-Plugin)
-[![Badge](https://img.shields.io/badge/onebot-v11-black?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwCAMAAADxPgR5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAxQTFRF////29vbr6+vAAAAk1hCcwAAAAR0Uk5T////AEAqqfQAAAKcSURBVHja7NrbctswDATQXfD//zlpO7FlmwAWIOnOtNaTM5JwDMa8E+PNFz7g3waJ24fviyDPgfhz8fHP39cBcBL9KoJbQUxjA2iYqHL3FAnvzhL4GtVNUcoSZe6eSHizBcK5LL7dBr2AUZlev1ARRHCljzRALIEog6H3U6bCIyqIZdAT0eBuJYaGiJaHSjmkYIZd+qSGWAQnIaz2OArVnX6vrItQvbhZJtVGB5qX9wKqCMkb9W7aexfCO/rwQRBzsDIsYx4AOz0nhAtWu7bqkEQBO0Pr+Ftjt5fFCUEbm0Sbgdu8WSgJ5NgH2iu46R/o1UcBXJsFusWF/QUaz3RwJMEgngfaGGdSxJkE/Yg4lOBryBiMwvAhZrVMUUvwqU7F05b5WLaUIN4M4hRocQQRnEedgsn7TZB3UCpRrIJwQfqvGwsg18EnI2uSVNC8t+0QmMXogvbPg/xk+Mnw/6kW/rraUlvqgmFreAA09xW5t0AFlHrQZ3CsgvZm0FbHNKyBmheBKIF2cCA8A600aHPmFtRB1XvMsJAiza7LpPog0UJwccKdzw8rdf8MyN2ePYF896LC5hTzdZqxb6VNXInaupARLDNBWgI8spq4T0Qb5H4vWfPmHo8OyB1ito+AysNNz0oglj1U955sjUN9d41LnrX2D/u7eRwxyOaOpfyevCWbTgDEoilsOnu7zsKhjRCsnD/QzhdkYLBLXjiK4f3UWmcx2M7PO21CKVTH84638NTplt6JIQH0ZwCNuiWAfvuLhdrcOYPVO9eW3A67l7hZtgaY9GZo9AFc6cryjoeFBIWeU+npnk/nLE0OxCHL1eQsc1IciehjpJv5mqCsjeopaH6r15/MrxNnVhu7tmcslay2gO2Z1QfcfX0JMACG41/u0RrI9QAAAABJRU5ErkJggg==)](https://github.com/howmanybots/onebot)
-[![Badge](https://img.shields.io/badge/zerobot-v1.5.0-black?style=flat-square&logo=go)](https://github.com/wdvxdr1123/ZeroBot)
-[![License](https://img.shields.io/github/license/FloatTech/ZeroBot-Plugin.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/FloatTech/ZeroBot-Plugin/master/LICENSE)
-[![qq group](https://img.shields.io/badge/group-1048452984-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=QMb7x1mM)
+  [![miraigo](https://img.shields.io/badge/OneBot-MiraiGo-green.svg?style=social&logo=appveyor)](https://github.com/Mrs4s/MiraiGo)
+  [![oicq](https://img.shields.io/badge/OneBot-OICQ-green.svg?style=social&logo=appveyor)](https://github.com/takayama-lily/oicq)
+  [![mirai](https://img.shields.io/badge/OneBot-Mirai-green.svg?style=social&logo=appveyor)](https://github.com/mamoe/mirai)
 
-本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
-| 项目地址 | 平台 | 核心作者 |
-| --- | --- | --- |
-| [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) | [MiraiGo](https://github.com/Mrs4s/MiraiGo) | Mrs4s |
-| [yyuueexxiinngg/cqhttp-mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai) | [Mirai](https://github.com/mamoe/mirai) | yyuueexxiinngg |
-| [takayama-lily/onebot](https://github.com/takayama-lily/onebot) | [OICQ](https://github.com/takayama-lily/oicq) | takayama |
+  [![go](https://goreportcard.com/badge/github.com/FloatTech/ZeroBot-Plugin?style=flat-square&logo=go)](https://goreportcard.com/badge/github.com/FloatTech/ZeroBot-Plugin)
+  [![onebot](https://img.shields.io/badge/onebot-v11-black?style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwCAMAAADxPgR5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAxQTFRF////29vbr6+vAAAAk1hCcwAAAAR0Uk5T////AEAqqfQAAAKcSURBVHja7NrbctswDATQXfD//zlpO7FlmwAWIOnOtNaTM5JwDMa8E+PNFz7g3waJ24fviyDPgfhz8fHP39cBcBL9KoJbQUxjA2iYqHL3FAnvzhL4GtVNUcoSZe6eSHizBcK5LL7dBr2AUZlev1ARRHCljzRALIEog6H3U6bCIyqIZdAT0eBuJYaGiJaHSjmkYIZd+qSGWAQnIaz2OArVnX6vrItQvbhZJtVGB5qX9wKqCMkb9W7aexfCO/rwQRBzsDIsYx4AOz0nhAtWu7bqkEQBO0Pr+Ftjt5fFCUEbm0Sbgdu8WSgJ5NgH2iu46R/o1UcBXJsFusWF/QUaz3RwJMEgngfaGGdSxJkE/Yg4lOBryBiMwvAhZrVMUUvwqU7F05b5WLaUIN4M4hRocQQRnEedgsn7TZB3UCpRrIJwQfqvGwsg18EnI2uSVNC8t+0QmMXogvbPg/xk+Mnw/6kW/rraUlvqgmFreAA09xW5t0AFlHrQZ3CsgvZm0FbHNKyBmheBKIF2cCA8A600aHPmFtRB1XvMsJAiza7LpPog0UJwccKdzw8rdf8MyN2ePYF896LC5hTzdZqxb6VNXInaupARLDNBWgI8spq4T0Qb5H4vWfPmHo8OyB1ito+AysNNz0oglj1U955sjUN9d41LnrX2D/u7eRwxyOaOpfyevCWbTgDEoilsOnu7zsKhjRCsnD/QzhdkYLBLXjiK4f3UWmcx2M7PO21CKVTH84638NTplt6JIQH0ZwCNuiWAfvuLhdrcOYPVO9eW3A67l7hZtgaY9GZo9AFc6cryjoeFBIWeU+npnk/nLE0OxCHL1eQsc1IciehjpJv5mqCsjeopaH6r15/MrxNnVhu7tmcslay2gO2Z1QfcfX0JMACG41/u0RrI9QAAAABJRU5ErkJggg==)](https://t.me/zerobotplugin)
+  [![zerobot](https://img.shields.io/badge/zerobot-v1.5.1-black?style=flat-square&logo=go)](https://github.com/wdvxdr1123/ZeroBot)
+  [![license](https://img.shields.io/github/license/FloatTech/ZeroBot-Plugin.svg?style=flat-square&logo=gnu)](https://raw.githubusercontent.com/FloatTech/ZeroBot-Plugin/master/LICENSE)
+  [![tencent-qq](https://img.shields.io/badge/group-1048452984-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=QMb7x1mM)
+  [![telegram](https://img.shields.io/badge/Telegram-click%20me-informational?style=flat-square&logo=telegram)](https://t.me/zerobotplugin)
 
+  本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
+  | 项目地址 | 平台 | 核心作者 |
+  | --- | --- | --- |
+  | [Mrs4s/go-cqhttp](https://github.com/Mrs4s/go-cqhttp) | [MiraiGo](https://github.com/Mrs4s/MiraiGo) | Mrs4s |
+  | [yyuueexxiinngg/cqhttp-mirai](https://github.com/yyuueexxiinngg/cqhttp-mirai) | [Mirai](https://github.com/mamoe/mirai) | yyuueexxiinngg |
+  | [takayama-lily/onebot](https://github.com/takayama-lily/onebot) | [OICQ](https://github.com/takayama-lily/oicq) | takayama |
+  
 </div>
 
 > 如果您不知道什么是 [OneBot](https://github.com/howmanybots/onebot) 或不希望运行多个程序，还可以直接前往 [gocqzbp](https://github.com/FloatTech/gocqzbp) 的 [Release](https://github.com/FloatTech/gocqzbp/releases) 页面下载单一可执行文件或前往 [Packages](https://github.com/FloatTech/gocqzbp/pkgs/container/gocqzbp) 页面使用`docker`，运行后按提示登录即可。
+
+> 如果您对开发插件感兴趣，欢迎加入[ZeroBot-Plugin-Playground](https://github.com/FloatTech/ZeroBot-Plugin-Playground)
 
 ## 命令行参数
 > `[]`代表是可选参数
@@ -85,6 +92,8 @@ zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname]
   - [x] /还原 xxx (在发送的群/用户还原xxx的开启状态到初始状态)
 
   - 注：当全局未配置或与默认相同时，状态取决于单独配置，后备为默认配置；当全局与默认不同时，状态取决于全局配置，单独配置失效。
+
+  - [x] /改变默认启用状态 xxx
 
   - [x] /禁止 service qq1 qq2... (禁止 qqs 使用服务 service)
 
@@ -311,6 +320,15 @@ print("run[CQ:image,file="+j["img"]+"]")
 ```
 
 ![随机b站404页趣图](https://user-images.githubusercontent.com/41315874/157371451-c09ad3bb-c61a-4a42-9c47-fab3305bc0f8.png)
+
+  - [x] [我|大家|有人][说|问][正则表达式]你[答|说|做|执行][模版]
+
+  - [x] [查看|看看][我|大家|有人][说|问][正则表达式]
+
+  - [x] 删除[大家|有人|我][说|问|让你做|让你执行][正则表达式]
+
+  - 注：模版是指含有`$1` `$2`这样的未定参数，会在正则匹配时按顺序填入子匹配对应值
+
 </details>
 
 ### *中优先级*
@@ -322,11 +340,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 查询计算机当前活跃度: [检查身体 | 自检 | 启动自检 | 系统状态]
 
-  - [x] 清理缓存 (仅适用于 gocq 且需要 bot 的运行目录和 gocq 相同)
-
-  - [ ] 简易语音
-
-  - [ ] 爬图合成 [@xxx]
+  - [x] 设置默认限速为每 m [分钟 | 秒] n 次触发
 
 </details>
 <details>
@@ -476,6 +490,18 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>一群一天一夫一妻制群老婆</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"`
+
+  - [x] 娶群友
+
+  - [x] 娶[ 老婆QQ号 | @老婆QQ ]
+
+  - [x] 群老婆列表
+
+</details>
+<details>
   <summary>合成emoji</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/emojimix"`
@@ -505,7 +531,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 运势 | 抽签
 
-  - [x] 设置底图[车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌 公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师 赛马娘 东方归言录 奇异恩典]
+  - [x] 设置底图[车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌 公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师 赛马娘 东方归言录 奇异恩典 夏日口袋]
 
 </details>
 <details>
@@ -513,7 +539,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/funny"`
 
-  - [x] 讲个笑话[@xxx] | 讲个笑话[qq号]
+  - [x] 讲个笑话[@xxx|qq号|人名] | 夸夸[@xxx|qq号|人名]
 
 </details>
 <details>
@@ -612,7 +638,14 @@ print("run[CQ:image,file="+j["img"]+"]")
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/lolicon"`
 
   - [x] 来份萝莉
+
   - [x] 设置随机图片地址[http...]
+
+  - 每一小时发一张图
+```
+记录在"@every 1h"触发的指令
+来份萝莉
+```
 
 </details>
 <details>
@@ -769,7 +802,29 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 放大图片[图片]
 
 </details>
+<details>
+  <summary>签到得分</summary>
 
+`import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/score"` 
+
+  - [x] 签到
+  - [x] 获得签到背景[@xxx] | 获得签到背景
+
+</details>
+<details>
+  <summary>沙雕app</summary>
+
+`import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/shadiao"`
+
+- [x] 哄我
+- [x] 渣我
+- [x] 来碗绿茶
+- [x] 发个朋友圈
+- [x] 来碗毒鸡汤
+- [x] 讲个段子
+- [x] 马丁路德骂我
+
+</details>
 <details>
   <summary>shindan</summary>
 
@@ -784,6 +839,16 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 抽老婆[@xxx]
 
   - [x] 黄油角色[@xxx]
+
+</details>
+<details>
+  <summary>抽塔罗牌</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/tarot"`
+
+  - [x] 抽塔罗牌
+  - [x] 抽n张塔罗牌
+  - [x] 解塔罗牌[牌名]
 
 </details>
 <details>
@@ -907,6 +972,8 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 取消b站直播订阅[uid]
 
   - [x] b站推送列表
+
+  - 注：由于需要安装Chrome，默认注释，具体看[这里](https://www.yuque.com/xiangrikuidezhongzi/zerobot/qrwxth)
 
 </details>
 

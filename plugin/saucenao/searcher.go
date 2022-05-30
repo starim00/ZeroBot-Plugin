@@ -3,6 +3,9 @@ package saucenao
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+	"reflect"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -11,13 +14,17 @@ import (
 
 	"github.com/FloatTech/AnimeAPI/ascii2d"
 	"github.com/FloatTech/AnimeAPI/pixiv"
-	"github.com/FloatTech/AnimeAPI/saucenao"
-	"github.com/FloatTech/AnimeAPI/yandex"
+	"github.com/jozsefsallai/gophersauce"
 
+	"github.com/FloatTech/zbputils/binary"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/file"
 	"github.com/FloatTech/zbputils/img/pool"
+)
+
+var (
+	saucenaocli *gophersauce.Client
 )
 
 func init() { // 插件主体
@@ -26,7 +33,22 @@ func init() { // 插件主体
 		Help: "搜图\n" +
 			"- 以图搜图 | 搜索图片 | 以图识图[图片]\n" +
 			"- 搜图[P站图片ID]",
+		PrivateDataFolder: "saucenao",
 	})
+	apikeyfile := engine.DataFolder() + "apikey.txt"
+	if file.IsExist(apikeyfile) {
+		key, err := os.ReadFile(apikeyfile)
+		if err != nil {
+			panic(err)
+		}
+		saucenaocli, err = gophersauce.NewClient(&gophersauce.Settings{
+			MaxResults: 1,
+			APIKey:     binary.BytesToString(key),
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
 	// 根据 PID 搜图
 	engine.OnRegex(`^搜图(\d+)$`).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
@@ -65,15 +87,22 @@ func init() { // 插件主体
 					imgs = append(imgs, message.Image("file:///"+f))
 				}
 				txt := message.Text(
-					"标题：", illust.Title, "\n",
-					"插画ID：", illust.Pid, "\n",
-					"画师：", illust.UserName, "\n",
-					"画师ID：", illust.UserId, "\n",
-					"直链：", "https://pixivel.moe/detail?id=", illust.Pid,
+					"标题: ", illust.Title, "\n",
+					"插画ID: ", illust.Pid, "\n",
+					"画师: ", illust.UserName, "\n",
+					"画师ID: ", illust.UserId, "\n",
+					"直链: ", "https://pixivel.moe/detail?id=", illust.Pid,
 				)
 				if imgs != nil {
-					// 发送搜索结果
-					ctx.Send(append(imgs, message.Text("\n"), txt))
+					if zero.OnlyGroup(ctx) {
+						ctx.SendGroupForwardMessage(ctx.Event.GroupID, message.Message{
+							ctxext.FakeSenderForwardNode(ctx, txt),
+							ctxext.FakeSenderForwardNode(ctx, imgs...),
+						})
+					} else {
+						// 发送搜索结果
+						ctx.Send(append(imgs, message.Text("\n"), txt))
+					}
 				} else {
 					// 图片下载失败，仅发送文字结果
 					ctx.SendChain(txt)
@@ -86,44 +115,49 @@ func init() { // 插件主体
 	engine.OnKeywordGroup([]string{"以图搜图", "搜索图片", "以图识图"}, zero.OnlyGroup, zero.MustProvidePicture).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			// 开始搜索图片
-			ctx.SendChain(message.Text("少女祈祷中......"))
+			ctx.SendChain(message.Text("少女祈祷中..."))
 			for _, pic := range ctx.State["image_url"].([]string) {
-				fmt.Println(pic)
-				if result, err := saucenao.SauceNAO(pic); err != nil {
-					ctx.SendChain(message.Text("ERROR:", err))
+				if saucenaocli != nil {
+					resp, err := saucenaocli.FromURL(pic)
+					if err == nil && resp.Count() > 0 {
+						result := resp.First()
+						s, err := strconv.ParseFloat(result.Header.Similarity, 64)
+						if err == nil {
+							rr := reflect.ValueOf(&result.Data).Elem()
+							b := binary.NewWriterF(func(w *binary.Writer) {
+								r := rr.Type()
+								for i := 0; i < r.NumField(); i++ {
+									if !rr.Field(i).IsZero() {
+										w.WriteString("\n")
+										w.WriteString(r.Field(i).Name)
+										w.WriteString(": ")
+										w.WriteString(fmt.Sprint(rr.Field(i).Interface()))
+									}
+								}
+							})
+							resp, err := http.Head(result.Header.Thumbnail)
+							msg := make(message.Message, 0, 3)
+							if s > 80.0 {
+								msg = append(msg, message.Text("我有把握是这个!"))
+							} else {
+								msg = append(msg, message.Text("也许是这个?"))
+							}
+							if err == nil && resp.StatusCode == http.StatusOK {
+								msg = append(msg, message.Image(result.Header.Thumbnail))
+							} else {
+								msg = append(msg, message.Image(pic))
+							}
+							msg = append(msg, message.Text("\n图源: ", result.Header.IndexName, binary.BytesToString(b)))
+							ctx.Send(msg)
+							if s > 80.0 {
+								continue
+							}
+						}
+					}
 				} else {
-					// 返回SauceNAO的结果
-					ctx.SendChain(
-						message.Text("我有把握是这个！"),
-						message.Image(result[0].Thumbnail),
-						message.Text(
-							"\n",
-							"相似度：", result[0].Similarity, "\n",
-							"标题：", result[0].Title, "\n",
-							"插画ID：", result[0].PixivID, "\n",
-							"画师：", result[0].MemberName, "\n",
-							"画师ID：", result[0].MemberID, "\n",
-							"直链：", "https://pixivel.moe/detail?id=", result[0].PixivID,
-						),
-					)
-					continue
+					ctx.SendChain(message.Text("请私聊发送 设置 saucenao api key [apikey] 以启用 saucenao 搜图, key 请前往 https://saucenao.com/user.php?page=search-api 获取"))
 				}
-				if result, err := yandex.Yandex(pic); err != nil {
-					ctx.SendChain(message.Text("ERROR:", err))
-				} else {
-					ctx.SendChain(
-						message.Text("也许是这个？"),
-						message.Text(
-							"\n",
-							"标题：", result.Title, "\n",
-							"插画ID：", result.Pid, "\n",
-							"画师：", result.UserName, "\n",
-							"画师ID：", result.UserId, "\n",
-							"直链：", "https://pixivel.moe/detail?id=", result.Pid,
-						),
-					)
-				}
-				// 不论结果如何都执行 ascii2d 搜索
+				// ascii2d 搜索
 				if result, err := ascii2d.Ascii2d(pic); err != nil {
 					ctx.SendChain(message.Text("ERROR:", err))
 					continue
@@ -133,7 +167,7 @@ func init() { // 插件主体
 						msg = append(msg, ctxext.FakeSenderForwardNode(ctx,
 							message.Image(result[i].Thumb),
 							message.Text(fmt.Sprintf(
-								"标题：%s\n图源：%s\n画师：%s\n画师链接：%s\n图片链接：%s",
+								"标题: %s\n图源: %s\n画师: %s\n画师链接: %s\n图片链接: %s",
 								result[i].Name,
 								result[i].Type,
 								result[i].AuthNm,
@@ -150,5 +184,23 @@ func init() { // 插件主体
 					}
 				}
 			}
+		})
+	engine.OnRegex(`^设置\s?saucenao\s?api\s?key\s?([0-9a-f]{40})$`, zero.SuperUserPermission, zero.OnlyPrivate).SetBlock(true).
+		Handle(func(ctx *zero.Ctx) {
+			var err error
+			saucenaocli, err = gophersauce.NewClient(&gophersauce.Settings{
+				MaxResults: 1,
+				APIKey:     ctx.State["regex_matched"].([]string)[1],
+			})
+			if err != nil {
+				ctx.SendChain(message.Text("ERROR:", err))
+				return
+			}
+			err = os.WriteFile(apikeyfile, binary.StringToBytes(saucenaocli.APIKey), 0644)
+			if err != nil {
+				ctx.SendChain(message.Text("ERROR:", err))
+				return
+			}
+			ctx.SendChain(message.Text("成功!"))
 		})
 }

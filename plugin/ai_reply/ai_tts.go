@@ -45,25 +45,31 @@ func init() {
 			"百度度逍遥":  baidutts.NewBaiduTTS(3),
 			"百度度丫丫":  baidutts.NewBaiduTTS(4),
 			"拟声鸟阿梓":  nil,
+			"拟声鸟文静":  nil,
 			"拟声鸟药水哥": nil,
 		},
-		l: []string{"拟声鸟阿梓", "拟声鸟药水哥", "百度女声", "百度男声", "百度度逍遥", "百度度丫丫"},
+		l: []string{"拟声鸟阿梓", "拟声鸟文静", "拟声鸟药水哥", "百度女声", "百度男声", "百度度逍遥", "百度度丫丫"},
 	}
 	engine := control.Register(ttsServiceName, &control.Options{
 		DisableOnDefault: true,
 		Help: "语音回复(包括拟声鸟和百度)\n" +
 			"- @Bot 任意文本(任意一句话回复)\n" +
-			"- 设置语音模式[拟声鸟阿梓 | 拟声鸟药水哥 | 百度女声 | 百度男声| 百度度逍遥 | 百度度丫丫]\n" +
-			"- 设置默认语音模式[拟声鸟阿梓 | 拟声鸟药水哥 | 百度女声 | 百度男声| 百度度逍遥 | 百度度丫丫]\n",
+			"- 设置语音模式[拟声鸟阿梓 | 拟声鸟文静 | 拟声鸟药水哥 | 百度女声 | 百度男声| 百度度逍遥 | 百度度丫丫]\n" +
+			"- 设置默认语音模式[拟声鸟阿梓 | 拟声鸟文静 | 拟声鸟药水哥 | 百度女声 | 百度男声| 百度度逍遥 | 百度度丫丫]\n",
 	})
 	engine.OnMessage(zero.OnlyToMe).SetBlock(true).Limit(ctxext.LimitByUser).
 		Handle(func(ctx *zero.Ctx) {
 			msg := ctx.ExtractPlainText()
 			r := aireply.NewAIReply(getReplyMode(ctx))
-			tts := t.new(t.getSoundMode(ctx))
+			tts, err := t.new(t.getSoundMode(ctx))
+			if err != nil {
+				ctx.SendChain(message.Text("ERROR:", err))
+				return
+			}
+			var reply string
 			if tts != nil {
-				ctx.SendChain(message.Record(tts.Speak(ctx.Event.UserID, func() string {
-					reply := r.TalkPlain(msg, zero.BotConfig.NickName[0])
+				rec, err := tts.Speak(ctx.Event.UserID, func() string {
+					reply = r.TalkPlain(msg, zero.BotConfig.NickName[0])
 					reply = re.ReplaceAllStringFunc(reply, func(s string) string {
 						f, err := strconv.ParseFloat(s, 64)
 						if err != nil {
@@ -74,7 +80,12 @@ func init() {
 					})
 					log.Debugln("[tts]:", reply)
 					return reply
-				})))
+				})
+				if err == nil {
+					ctx.SendChain(message.Record(rec))
+				} else {
+					ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(reply))
+				}
 			}
 		})
 	engine.OnRegex(`^设置语音模式(.*)$`, ctxext.FirstValueInList(t)).SetBlock(true).
@@ -96,7 +107,7 @@ func init() {
 }
 
 // new 语音简单工厂
-func (t *ttsInstances) new(name string) (ts tts.TTS) {
+func (t *ttsInstances) new(name string) (ts tts.TTS, err error) {
 	t.RLock()
 	ts = t.m[name]
 	t.RUnlock()
@@ -104,11 +115,15 @@ func (t *ttsInstances) new(name string) (ts tts.TTS) {
 		switch name {
 		case "拟声鸟阿梓":
 			t.Lock()
-			ts, _ = mockingbird.NewMockingBirdTTS(0)
+			ts, err = mockingbird.NewMockingBirdTTS(0)
+			t.Unlock()
+		case "拟声鸟文静":
+			t.Lock()
+			ts, err = mockingbird.NewMockingBirdTTS(1)
 			t.Unlock()
 		case "拟声鸟药水哥":
 			t.Lock()
-			ts, _ = mockingbird.NewMockingBirdTTS(1)
+			ts, err = mockingbird.NewMockingBirdTTS(2)
 			t.Unlock()
 		}
 	}
