@@ -13,7 +13,8 @@ import (
 
 	"github.com/FloatTech/zbputils/web"
 
-	control "github.com/FloatTech/zbputils/control"
+	ctrl "github.com/FloatTech/zbpctrl"
+	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/tidwall/gjson"
 	zero "github.com/wdvxdr1123/ZeroBot"
@@ -21,7 +22,7 @@ import (
 )
 
 func init() {
-	control.Register("music", &control.Options{
+	control.Register("music", &ctrl.Options[*zero.Ctx]{
 		DisableOnDefault: false,
 		Help: "点歌\n" +
 			"- 点歌[xxx]\n" +
@@ -137,7 +138,7 @@ func kugou(keyword string) message.MessageSegment {
 
 // cloud163 返回网易云音乐卡片
 func cloud163(keyword string) (msg message.MessageSegment) {
-	requestURL := "https://autumnfish.cn/search?keywords=" + url.QueryEscape(keyword)
+	requestURL := "https://music.cyrilstudio.top/search?keywords=" + url.QueryEscape(keyword)
 	data, err := web.GetData(requestURL)
 	if err != nil {
 		msg = message.Text("ERROR:", err)

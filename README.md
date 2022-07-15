@@ -36,7 +36,7 @@
 ## 命令行参数
 > `[]`代表是可选参数
 ```bash
-zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname] [-p prefix] [-d|w] [-g 监听地址:端口] [qq1 qq2 qq3 ...] [&]
+zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname] [-p prefix] [-d|w] [qq1 qq2 qq3 ...] [&]
 ```
 - **-c config.json**: 从`config.json`加载`bot`配置
 - **-h**: 显示帮助
@@ -46,7 +46,6 @@ zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname]
 - **-n nickname**: 设置默认昵称，默认为`椛椛`
 - **-p prefix**: 设置命令前缀，默认为`/`
 - **-d|w**: 开启 debug | warning 级别及以上日志输出
-- **-g 监听地址:端口**: 在 http://监听地址:端口 上开启 [webgui](https://github.com/FloatTech/bot-manager)
 - **qqs**: superusers 的 qq 号
 - **&**: 驻留在后台，必须放在最后，仅`Linux`下有效
 
@@ -80,6 +79,14 @@ zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname]
 
 <details>
   <summary>插件控制</summary>
+
+  - [x] /响应 (在发送的群/用户开始工作)
+
+  - [x] /沉默 (在发送的群/用户停止工作)
+
+  - [x] /全局响应 (在所有位置开始工作，无视单独的沉默)
+
+  - [x] /全局沉默 (在所有本应沉默的位置停止工作，显式指定启用的位置不受影响)
 
   - [x] /启用 xxx (在发送的群/用户启用xxx)
 
@@ -115,23 +122,13 @@ zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname]
 <details>
   <summary>动态加载插件</summary>
 
-  `import _ github.com/FloatTech/ZeroBot-Plugin-Dynamic/dyloader`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin-Dynamic/dyloader"`
 
   - 本功能需要`cgo`，故已分离出主线。详见[ZeroBot-Plugin-Dynamic](https://github.com/FloatTech/ZeroBot-Plugin-Dynamic)
 
 </details>
 
 ### *高优先级*
-<details>
-  <summary>web管理</summary>
-
-  `import _ "github.com/FloatTech/zbputils/control/web"`
-
-  - 开启后可执行文件大约增加 5M ，默认注释不开启。如需开启请自行编辑`main.go`取消注释
-
-  - 需要配合 [webgui](https://github.com/FloatTech/bot-manager) 使用
-
-</details>
 <details>
   <summary>聊天</summary>
 
@@ -153,7 +150,7 @@ zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname]
 <details>
   <summary>睡眠管理</summary>
 
-  `import _ github.com/FloatTech/ZeroBot-Plugin/plugin/sleep_manage`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/sleep_manage"`
 
   - [x] 早安 | 晚安
 
@@ -454,7 +451,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 <details>
   <summary>DeepDanbooru二次元图标签识别</summary>
 
-  `import _ github.com/FloatTech/ZeroBot-Plugin/plugin/danbooru`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/danbooru"`
 
   - [x] 鉴赏图片[图片]
 
@@ -529,11 +526,11 @@ print("run[CQ:image,file="+j["img"]+"]")
 <details>
   <summary>每日运势</summary>
 
-  `import _ github.com/FloatTech/ZeroBot-Plugin/plugin/fortune`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/fortune"`
 
   - [x] 运势 | 抽签
 
-  - [x] 设置底图[车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌 公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师 赛马娘 东方归言录 奇异恩典 夏日口袋]
+  - [x] 设置底图[车万 DC4 爱因斯坦 星空列车 樱云之恋 富婆妹 李清歌 公主连结 原神 明日方舟 碧蓝航线 碧蓝幻想 战双 阴阳师 赛马娘 东方归言录 奇异恩典 夏日口袋 ASoul]
 
 </details>
 <details>
@@ -547,7 +544,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 <details>
   <summary>原神抽卡</summary>
 
-  `import _ github.com/FloatTech/ZeroBot-Plugin/plugin/genshin`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/genshin"`
 
   - [x] 切换原神卡池
 
@@ -576,6 +573,30 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] >github [xxx]
 
   - [x] >github -p [xxx]
+
+</details>
+<details>
+  <summary>猜歌</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/guessmusic"`
+
+  - 猜歌插件（该插件依赖ffmpeg）
+
+  - [x] 个人猜歌
+  
+  - [x] 团队猜歌
+  
+  - [x] 设置猜歌缓存歌库路径 [绝对路径]
+
+  - [x] 设置猜歌本地 [true/false]
+
+  - [x] 设置猜歌Api [true/false]
+  
+  - 注：默认歌库为网易云热歌榜
+  
+  - 1.可在后面添加“-动漫”进行动漫歌猜歌(这个只能猜歌名和歌手)
+  
+  - 2.可在后面添加“-动漫2”进行动漫歌猜歌(这个可以猜番名，但歌手经常“未知”)
 
 </details>
 <details>
@@ -648,6 +669,28 @@ print("run[CQ:image,file="+j["img"]+"]")
 记录在"@every 1h"触发的指令
 来份萝莉
 ```
+
+</details>
+<details>
+  <summary>简易midi音乐制作</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/midicreate"`
+
+  - [x] midi制作 CCGGAAGR FFEEDDCR GGFFEEDR GGFFEEDR CCGGAAGR FFEEDDCR
+
+  - [x] 个人听音练习
+  
+  - [x] 团队听音练习
+  
+  - [x] *.mid (midi 转 txt)
+  
+  - [x] midi制作*.txt (txt 转 midi)
+  
+  - [x] 设置音色40 (0~127)
+
+  - [x] 注: 该插件需要安装timidity,linux安装脚本可参考 https://gitcode.net/anto_july/midi/-/raw/master/timidity.sh , windows安装脚本可参考 https://gitcode.net/anto_july/midi/-/raw/master/timidity.bat , windows需要管理员模式运行
+  
+  - [x] 符号说明: C5是中央C,后面不写数字,默认接5,Cb6<1,b代表降调,#代表升调,6比5高八度,<1代表音长×2,<3代表音长×8,<-1代表音长×0.5,<-3代表音长×0.125,R是休止符
 
 </details>
 <details>
@@ -757,7 +800,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 <details>
   <summary>浅草寺求签</summary>
 
-  `import _ github.com/FloatTech/ZeroBot-Plugin/plugin/omikuji`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/omikuji"`
 
   - [x] 求签 | 占卜
 
@@ -851,6 +894,7 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 抽塔罗牌
   - [x] 抽n张塔罗牌
   - [x] 解塔罗牌[牌名]
+  - [x] 塔罗牌阵[圣三角|时间之流|四要素|五牌阵|吉普赛十字|马蹄|六芒星]"
 
 </details>
 <details>
@@ -913,23 +957,6 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] gal表情包[xxx]
 
   - [x] 更新gal
-
-</details>
-<details>
-  <summary>早报</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/zaobao"`
-
-  - api早上8点更新，推荐定时在8点30后。配合插件`job`中的记录在"cron"触发的指令使用
-
-  - [x] /启用 zaobao
-
-  - [x] /禁用 zaobao
-
-```
-记录在"00 9 * * *"触发的指令
-今日早报
-```
 
 </details>
 <details>
@@ -999,10 +1026,6 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] @Bot 任意文本(任意一句话回复)
 
   - [x] 设置回复模式[青云客 | 小爱]
-
-</details>
-<details>
-  <summary>TODO...</summary>
 
 </details>
 

@@ -6,4 +6,4 @@ plugins/*.dll
 go-zero*
 nohup.out
 zerobot
-data
+ZeroBot-Plugin*
