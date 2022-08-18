@@ -585,7 +585,7 @@ func init() {
 				ctx.SendChain(message.Text("数据库发生问题力，请联系bot管理员\n[error]", err))
 				return
 			case 1:
-				if rand.Intn(10) != 1 { // 十分之一的概率成功
+				if rand.Intn(10) >= 5 { // 十分之一的概率成功
 					ctx.SendChain(message.Text(sendtext[3][rand.Intn(len(sendtext[3]))]))
 					return
 				}
@@ -596,7 +596,7 @@ func init() {
 				}
 				ctx.SendChain(message.Text(sendtext[4][0]))
 			case 0:
-				if rand.Intn(10) != 0 { // 十分之一的概率成功
+				if rand.Intn(10) >= 5 { // 十分之一的概率成功
 					ctx.SendChain(message.Text(sendtext[3][rand.Intn(len(sendtext[3]))]))
 					return
 				}
