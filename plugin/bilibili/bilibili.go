@@ -13,88 +13,77 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Coloured-glaze/gg"
+	fcext "github.com/FloatTech/floatbox/ctxext"
+	"github.com/FloatTech/floatbox/file"
+	"github.com/FloatTech/floatbox/img/writer"
+	"github.com/FloatTech/floatbox/web"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
-	"github.com/FloatTech/zbputils/ctxext"
-	"github.com/FloatTech/zbputils/file"
 	"github.com/FloatTech/zbputils/img"
 	"github.com/FloatTech/zbputils/img/text"
-	"github.com/FloatTech/zbputils/img/writer"
-	"github.com/FloatTech/zbputils/web"
-	"github.com/fogleman/gg"
 	log "github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-var engine = control.Register("bilibili", &ctrl.Options[*zero.Ctx]{
-	DisableOnDefault: false,
-	Help: "bilibili\n" +
-		"- >vup info [xxx]\n" +
-		"- >user info [xxx]\n" +
-		"- 查成分 [xxx]\n" +
-		"- 设置b站cookie SESSDATA=82da790d,1663822823,06ecf*31\n" +
-		"- 更新vup",
-	PublicDataFolder: "Bilibili",
-})
 var re = regexp.MustCompile(`^\d+$`)
 
 // 查成分的
 func init() {
+	engine := control.Register("bilibili", &ctrl.Options[*zero.Ctx]{
+		DisableOnDefault: false,
+		Help: "bilibili\n" +
+			"- >vup info [xxx]\n" +
+			"- >user info [xxx]\n" +
+			"- 查成分 [xxx]\n" +
+			"- 设置b站cookie SESSDATA=82da790d,1663822823,06ecf*31\n" +
+			"- 更新vup",
+		PublicDataFolder: "Bilibili",
+	})
 	cachePath := engine.DataFolder() + "cache/"
 	_ = os.RemoveAll(cachePath)
 	_ = os.MkdirAll(cachePath, 0755)
-	var getdb = ctxext.DoOnceOnSuccess(func(ctx *zero.Ctx) bool {
+	var getdb = fcext.DoOnceOnSuccess(func(ctx *zero.Ctx) bool {
 		var err error
 		_, _ = engine.GetLazyData("bilibili.db", false)
-		vdb, err = initialize(engine.DataFolder() + "bilibili.db")
+		vdb, err = initializeVup(engine.DataFolder() + "bilibili.db")
 		if err != nil {
-			ctx.SendChain(message.Text("ERROR:", err))
+			ctx.SendChain(message.Text("ERROR: ", err))
 			return false
 		}
 		return true
 	})
 
-	engine.OnRegex(`^>user info\s?(.{1,25})$`, getdb).SetBlock(true).
+	engine.OnRegex(`^>user info\s?(.{1,25})$`, getPara).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			keyword := ctx.State["regex_matched"].([]string)[1]
-			uidRes, err := search(keyword)
+			id := ctx.State["uid"].(string)
+			card, err := getMemberCard(id)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			id := strconv.FormatInt(uidRes[0].Mid, 10)
-			follwings, err := followings(id)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
-			}
 			ctx.SendChain(message.Text(
-				"search: ", uidRes[0].Mid, "\n",
-				"name: ", uidRes[0].Uname, "\n",
-				"sex: ", []string{"", "男", "女", "未知"}[uidRes[0].Gender], "\n",
-				"sign: ", uidRes[0].Usign, "\n",
-				"level: ", uidRes[0].Level, "\n",
-				"follow: ", follwings,
+				"uid: ", card.Mid, "\n",
+				"name: ", card.Name, "\n",
+				"sex: ", card.Sex, "\n",
+				"sign: ", card.Sign, "\n",
+				"level: ", card.LevelInfo.CurrentLevel, "\n",
+				"birthday: ", card.Birthday,
 			))
 		})
 
-	engine.OnRegex(`^>vup info\s?(.{1,25})$`).SetBlock(true).
+	engine.OnRegex(`^>vup info\s?(.{1,25})$`, getPara).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
-			keyword := ctx.State["regex_matched"].([]string)[1]
-			res, err := search(keyword)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
-				return
-			}
-			id := strconv.FormatInt(res[0].Mid, 10)
+			id := ctx.State["uid"].(string)
 			// 获取详情
-			fo, err := fansapi(id)
+			fo, err := getVtbDetail(id)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			ctx.SendChain(message.Text(
-				"search: ", fo.Mid, "\n",
+				"b站id: ", fo.Mid, "\n",
 				"名字: ", fo.Uname, "\n",
 				"当前粉丝数: ", fo.Follower, "\n",
 				"24h涨粉数: ", fo.Rise, "\n",
@@ -116,21 +105,21 @@ func init() {
 				ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
 				return
 			}
-			u, err := card(id)
+			u, err := getMemberCard(id)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			vups, err := vdb.filterVup(u.Attentions)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			vupLen := len(vups)
-			medals, err := medalwall(id)
+			medals, err := getMedalwall(id)
 			sort.Sort(medalSlice(medals))
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 			}
 			frontVups := make([]vup, 0)
 			medalMap := make(map[int64]medal)
@@ -158,12 +147,12 @@ func init() {
 			if path.Ext(u.Face) != ".webp" {
 				err = initFacePic(facePath, u.Face)
 				if err != nil {
-					ctx.SendChain(message.Text("ERROR:", err))
+					ctx.SendChain(message.Text("ERROR: ", err))
 					return
 				}
 				back, err = gg.LoadImage(facePath)
 				if err != nil {
-					ctx.SendChain(message.Text("ERROR:", err))
+					ctx.SendChain(message.Text("ERROR: ", err))
 					return
 				}
 				back = img.Size(back, backX, backY).Im
@@ -182,10 +171,10 @@ func init() {
 			canvas.SetColor(color.Black)
 			_, err = file.GetLazyData(text.BoldFontFile, true)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 			}
 			if err = canvas.LoadFontFace(text.BoldFontFile, fontSize); err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			sl, _ := canvas.MeasureString("好")
@@ -259,7 +248,7 @@ func init() {
 			_, err = writer.WriteTo(canvas.Image(), f)
 			_ = f.Close()
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
@@ -270,7 +259,7 @@ func init() {
 			cookie := ctx.State["regex_matched"].([]string)[1]
 			err := vdb.setBilibiliCookie(cookie)
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			ctx.SendChain(message.Text("成功设置b站cookie为" + cookie))
@@ -281,7 +270,7 @@ func init() {
 			ctx.SendChain(message.Text("少女祈祷中..."))
 			err := updateVup()
 			if err != nil {
-				ctx.SendChain(message.Text("ERROR:", err))
+				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
 			ctx.SendChain(message.Text("vup已更新"))
@@ -312,9 +301,9 @@ func int2rbg(t int64) (int64, int64, int64) {
 func getPara(ctx *zero.Ctx) bool {
 	keyword := ctx.State["regex_matched"].([]string)[1]
 	if !re.MatchString(keyword) {
-		searchRes, err := search(keyword)
+		searchRes, err := searchUser(keyword)
 		if err != nil {
-			ctx.SendChain(message.Text("ERROR:", err))
+			ctx.SendChain(message.Text("ERROR: ", err))
 			return false
 		}
 		ctx.State["uid"] = strconv.FormatInt(searchRes[0].Mid, 10)
@@ -345,9 +334,9 @@ func getPara(ctx *zero.Ctx) bool {
 				ctx.State["uid"] = keyword
 				return true
 			} else if num == 1 {
-				searchRes, err := search(keyword)
+				searchRes, err := searchUser(keyword)
 				if err != nil {
-					ctx.SendChain(message.Text("ERROR:", err))
+					ctx.SendChain(message.Text("ERROR: ", err))
 					return false
 				}
 				ctx.State["uid"] = strconv.FormatInt(searchRes[0].Mid, 10)

@@ -25,11 +25,11 @@ func init() { // 插件主体
 			ctx.SendChain(message.Text("少女祈祷中......"))
 			for _, pic := range ctx.State["image_url"].([]string) {
 				if result, err := moe.Search(pic, true, true); err != nil {
-					ctx.SendChain(message.Text("ERROR:", err))
+					ctx.SendChain(message.Text("ERROR: ", err))
 				} else if len(result.Result) > 0 {
 					r := result.Result[0]
 					hint := "我有把握是这个！"
-					if r.Similarity < 0.8 {
+					if r.Similarity < 80 {
 						hint = "大概是这个？"
 					}
 					mf := int(r.From / 60)
