@@ -250,7 +250,7 @@ zerobot [-c config.json] [-h] [-s config.json] [-t token] [-u url] [-n nickname]
 
   - [x] 取消以"完全匹配关键词"触发的(代表我执行的)指令
 
-  - [x] 记录在"cron"触发的指令
+  - [x] 记录在"cron"触发的(别名xxx的)指令
 
   - [x] 取消在"cron"触发的指令
 
@@ -329,7 +329,14 @@ print("run[CQ:image,file="+j["img"]+"]")
 </details>
 
 ### *中优先级*
+<details>
+  <summary>ahsai tts</summary>
 
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/ahsai"`
+
+  - [x] 使[ 伊織弓鶴 | 紲星あかり | 結月ゆかり | 京町セイカ |東北きりたん | 東北イタコ | ついなちゃん標準語 | ついなちゃん関西弁 | 音街ウナ | 琴葉茜 | 吉田くん | 民安ともえ | 桜乃そら | 月読アイ | 琴葉葵 | 東北ずん子 | 月読ショウタ | 水奈瀬コウ ]说(日语)
+
+</details>
 <details>
   <summary>AIfalse</summary>
 
@@ -381,8 +388,12 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 查成分 [xxx]
 
-  - [x] 设置b站cookie SESSDATA=82da790d,1663822823,06ecf\*31
+  - [x] 查弹幕 [xxx] 2 (最后一个参数是页码)
 
+  - [x] 设置b站cookie SESSDATA=82da790d,1663822823,06ecf\*31 (最好把cookie设全)
+
+    获取Cookie可以使用[这个工具](https://github.com/XiaoMiku01/login_bili_go)
+    
   - [x] 更新vup
 
 </details>
@@ -420,6 +431,14 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 书评[xxx]
 
   - [x] 随机书评
+
+</details>
+<details>
+  <summary>打断复读</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/breakrepeat"`
+
+  - [x] (打断三次以上的复读)
 
 </details>
 <details>
@@ -538,6 +557,18 @@ print("run[CQ:image,file="+j["img"]+"]")
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/epidemic"`
 
   - [x] xxx疫情
+
+</details>
+<details>
+  <summary>好友申请及群聊邀请事件处理</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/event"`
+
+  - [x] [开启|关闭]自动同意[申请|邀请|主人]
+
+  - [x] [同意|拒绝][申请|邀请][flag]
+
+  - flag跟随事件一起发送, 默认同意主人的事件
 
 </details>
 <details>
@@ -682,6 +713,14 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>小鸡词典</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/jikipedia"`
+
+  - [x] [查梗|小鸡词典][梗]
+
+</details>
+<details>
   <summary>绝绝子</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/juejuezi"`
@@ -694,7 +733,9 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/lolicon"`
 
-  - [x] 来份萝莉
+  - [x] 随机图片
+
+  - [x] 随机图片 萝莉|少女
 
   - [x] 设置随机图片地址[http...]
 

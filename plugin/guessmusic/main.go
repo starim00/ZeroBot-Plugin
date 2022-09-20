@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/fs"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -30,7 +29,6 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/extension/single"
 
 	// 图片输出
-
 	"github.com/FloatTech/zbputils/img/text"
 )
 
@@ -341,7 +339,7 @@ func init() { // 插件主体
 			if cfg.Local {
 				err = os.MkdirAll(cfg.MusicPath, 0755)
 				if err == nil {
-					files, err := ioutil.ReadDir(cfg.MusicPath)
+					files, err := os.ReadDir(cfg.MusicPath)
 					if err == nil {
 						if len(files) == 0 {
 							ctx.SendChain(message.Text("缓存目录没有读取到任何歌单"))
@@ -526,7 +524,8 @@ func init() { // 插件主体
 							tick.Stop()
 							after.Stop()
 							ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID,
-								message.Text("游戏已取消，猜歌答案是\n", answerString)))
+								message.Text("游戏已取消，猜歌答案是\n", answerString, "\n\n\n下面欣赏猜歌的歌曲")))
+							ctx.SendChain(message.Record("file:///" + pathOfMusic + musicName))
 							return
 						}
 						ctx.Send(
@@ -557,21 +556,24 @@ func init() { // 插件主体
 						tick.Stop()
 						after.Stop()
 						ctx.Send(message.ReplyWithMessage(c.Event.MessageID,
-							message.Text("太棒了，你猜对歌曲名了！答案是\n", answerString)))
+							message.Text("太棒了，你猜对歌曲名了！答案是\n", answerString, "\n\n下面欣赏猜歌的歌曲")))
+						ctx.SendChain(message.Record("file:///" + pathOfMusic + musicName))
 						return
 					case strings.Contains(musicInfo[1], answer) || strings.EqualFold(musicInfo[1], answer):
 						wait.Stop()
 						tick.Stop()
 						after.Stop()
 						ctx.Send(message.ReplyWithMessage(c.Event.MessageID,
-							message.Text("太棒了，你猜对歌手名了！答案是\n", answerString)))
+							message.Text("太棒了，你猜对歌手名了！答案是\n", answerString, "\n\n下面欣赏猜歌的歌曲")))
+						ctx.SendChain(message.Record("file:///" + pathOfMusic + musicName))
 						return
 					case strings.Contains(musicAlia, answer) || strings.EqualFold(musicAlia, answer):
 						wait.Stop()
 						tick.Stop()
 						after.Stop()
 						ctx.Send(message.ReplyWithMessage(c.Event.MessageID,
-							message.Text("太棒了，你猜对出处了！答案是\n", answerString)))
+							message.Text("太棒了，你猜对出处了！答案是\n", answerString, "\n\n下面欣赏猜歌的歌曲")))
+						ctx.SendChain(message.Record("file:///" + pathOfMusic + musicName))
 						return
 					default:
 						musicCount++
@@ -589,7 +591,8 @@ func init() { // 插件主体
 							tick.Stop()
 							after.Stop()
 							ctx.Send(message.ReplyWithMessage(c.Event.MessageID,
-								message.Text("次数到了，没能猜出来。答案是\n", answerString)))
+								message.Text("次数到了，没能猜出来。答案是\n", answerString, "\n\n下面欣赏猜歌的歌曲")))
+							ctx.SendChain(message.Record("file:///" + pathOfMusic + musicName))
 							return
 						default:
 							wait.Reset(40 * time.Second)
@@ -629,7 +632,7 @@ func getcatlist(pathOfMusic string) error {
 		err = errors.Errorf("[生成文件夹错误]ERROR: %s", err)
 		return err
 	}
-	files, err := ioutil.ReadDir(pathOfMusic)
+	files, err := os.ReadDir(pathOfMusic)
 	if err != nil {
 		err = errors.Errorf("[读取本地列表错误]ERROR: %s", err)
 		return err
@@ -648,7 +651,7 @@ func musicLottery(mode, musicPath string) (musicName, pathOfMusic string, err er
 		err = errors.Errorf("[生成文件夹错误]ERROR: %s", err)
 		return
 	}
-	files, err := ioutil.ReadDir(pathOfMusic)
+	files, err := os.ReadDir(pathOfMusic)
 	if err != nil {
 		err = errors.Errorf("[读取本地列表错误]ERROR: %s", err)
 		return
@@ -702,7 +705,7 @@ func musicLottery(mode, musicPath string) (musicName, pathOfMusic string, err er
 	return
 }
 
-func getLocalMusic(files []fs.FileInfo) (musicName string) {
+func getLocalMusic(files []fs.DirEntry) (musicName string) {
 	if len(files) > 1 {
 		musicName = files[rand.Intn(len(files))].Name()
 	} else {
@@ -752,7 +755,11 @@ func getListMusic(listID, pathOfMusic string) (musicName string, err error) {
 	musicURL := "http://music.163.com/song/media/outer/url?id=" + strconv.Itoa(musicID)
 	response, err := http.Head(musicURL)
 	if err != nil {
-		err = errors.Errorf("下载音乐失败, ERROR: %s", err)
+		if strings.Contains(err.Error(), "404") {
+			err = errors.Errorf("歌曲丢失, 可能歌曲已下架或者登录状态已过期。\n可尝试重新登录排除后者问题。")
+		} else {
+			err = errors.Errorf("下载音乐失败, ERROR: %s", err)
+		}
 		return
 	}
 	_ = response.Body.Close()
