@@ -29,12 +29,12 @@ import (
 )
 
 // nolint: asciicheck
-//nolint: asciicheck
+// nolint: asciicheck
 var (
 	民政局 = &婚姻登记{
 		db: &sql.Sqlite{},
 	}
-	skillCD  = rate.NewManager[string](time.Hour*12, 1)
+	skillCD  = rate.NewManager[string](time.Hour*2, 1)
 	sendtext = [...][]string{
 		{ // 表白成功
 			"是个勇敢的孩子(*/ω＼*) 今天的运气都降临在你的身边~\n\n",
@@ -385,7 +385,7 @@ func init() {
 			case "受":
 				mun = 0
 			}
-			if rand.Intn(10) != 1 { // 十分之一的概率成功
+			if rand.Intn(10) > 5 { // 十分之一的概率成功
 				ctx.SendChain(message.Text(sendtext[3][rand.Intn(len(sendtext[3]))]))
 				return
 			}
