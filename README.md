@@ -378,6 +378,34 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>base64卦加解密</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/base64gua"`
+
+  - [x] 六十四卦加密xxx
+
+  - [x] 六十四卦解密xxx
+
+  - [x] 六十四卦用yyy加密xxx
+
+  - [x] 六十四卦用yyy解密xxx
+
+</details>
+<details>
+  <summary>base天城文加解密</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/baseamasiro"`
+
+  - [x] 天城文加密xxx
+
+  - [x] 天城文解密xxx
+
+  - [x] 天城文用yyy加密xxx
+
+  - [x] 天城文用yyy解密xxx
+
+</details>
+<details>
   <summary>bilibili</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"`
@@ -452,14 +480,6 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>英文字符翻转</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/char_reverser"`
-
-  - [x] 翻转 [英文字符串]
-
-</details>
-<details>
   <summary>选择困难症帮手</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/choose"`
@@ -473,6 +493,14 @@ print("run[CQ:image,file="+j["img"]+"]")
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/chouxianghua"`
 
   - [x] 抽象翻译[xxx]
+
+</details>
+<details>
+  <summary>英文字符翻转</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/chrev"`
+
+  - [x] 翻转 I love you
 
 </details>
 <details>
@@ -534,13 +562,25 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"`
 
+  - 引入好感度系统，好感度越高，自由恋爱成功率越高
+  
+  - [x] 设置CD为xx小时
+
+  - [x] 允许/禁止自由恋爱
+
+  - [x] 允许/禁止牛头人
+
   - [x] 娶群友
 
   - [x] (娶|嫁)[@对方QQ]
   
   - [x] 当[对方Q号|@对方QQ]的小三
 
+  - [x] 做媒 @攻方QQ @受方QQ
+
   - [x] 群老婆列表
+
+  - [x] 重置花名册
 
 </details>
 <details>
@@ -637,31 +677,33 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - 猜歌插件（该插件依赖ffmpeg）
   
-  - [x] 设置猜歌缓存歌库路径 [绝对路径]
+  - 因为API不可抗因素，更改为了本地猜歌，但仍支持歌曲下载（VIP歌曲无法下载，黑胶可以）
   
-  - [x] 设置猜歌[本地/Api] [true/false]
+  - [x] 设置猜歌歌库路径 [绝对路径]
   
-  - [x] 登录网易云
+  - [x] 猜歌[开启/关闭][歌单/歌词]自动下载
   
-  - 注：不登陆也能用，API有几率返回400
+  - [x] 添加歌单 [网易云歌单链接/ID] [歌单名称]
   
-  - [x] 添加歌单 [网易云歌单ID] [歌单名称]
+  - [x] 下载歌曲 [歌曲名称/网易云歌曲ID] [歌单名称]
   
-  - 注：[歌单名称]可为空，默认原标题
+  - [x] 删除歌单 [网易云歌单ID/歌单名称]
   
-  - [x] 删除歌单 [网易云歌单ID/API歌单名称]
+  - 注：删除网易云歌单ID仅只是解除绑定，删除歌单名称是将本地数据全部删除！
   
-  - [x] 获取歌单列表
+  - [x] 设置猜歌默认歌单 [歌单名称]
   
-  - [x] [网易云歌单ID/API歌单名称]歌单信息
+  - [x] 歌单列表
   
   - [x] [个人/团队]猜歌
   
-  - 注：默认歌库为网易云ACG动画榜
+  - 注：默认歌库为歌单列表第一个，如果设置了默认歌单变为指定的歌单
   
-  - 可在后面添加[-歌单名称]进行指定歌单猜歌
+  - 可在“[个人/团队]猜歌指令”后面添加[-歌单名称]进行指定歌单猜歌
   
-  - 歌单的歌曲命名规则为:歌名 - 歌手 - 其他(歌曲出处之类)
+  - 猜歌内容必须以[-]开头才会识别
+  
+  - 本地歌曲命名规则为:\n歌名 - 歌手 - 其他(歌曲出处之类)
 
 </details>
 <details>
@@ -915,11 +957,11 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/runcode"`
 
-  - [x] > runcode [language] help
+  - [x] >runcode [language] help
 
-  - [x] > runcode [language] [code block]
+  - [x] >runcode [language] [code block]
 
-  - [x] > runcoderaw [language] [code block]
+  - [x] >runcoderaw [language] [code block]
 
 </details>
 <details>
@@ -930,6 +972,8 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 以图搜图 | 搜索图片 | 以图识图[图片]
 
   - [x] 搜图[P站图片ID]
+
+  - [x] 设置 saucenao api key [apikey]
 
 </details>
 <details>
