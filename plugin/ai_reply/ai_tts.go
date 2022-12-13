@@ -58,7 +58,7 @@ func setReplyMode(ctx *zero.Ctx, name string) error {
 	if !ok {
 		return errors.New("no such plugin")
 	}
-	return m.SetData(gid, index)
+	return m.SetData(gid, (m.GetData(index)&^0xff)|(index&0xff))
 }
 
 var chats *aireply.ChatGPT
@@ -70,7 +70,7 @@ func getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 	}
 	m, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
 	if ok {
-		switch m.GetData(gid) {
+		switch m.GetData(gid) & 0xff {
 		case 0:
 			return aireply.NewQYK(aireply.QYKURL, aireply.QYKBotName)
 		case 1:
