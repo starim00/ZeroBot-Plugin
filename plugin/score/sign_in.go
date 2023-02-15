@@ -9,26 +9,27 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Coloured-glaze/gg"
+	"github.com/FloatTech/AnimeAPI/bilibili"
+	"github.com/FloatTech/AnimeAPI/wallet"
 	"github.com/FloatTech/floatbox/file"
-	"github.com/FloatTech/floatbox/img/writer"
+	"github.com/FloatTech/floatbox/process"
+	"github.com/FloatTech/floatbox/web"
+	"github.com/FloatTech/gg"
+	"github.com/FloatTech/imgfactory"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
-	"github.com/FloatTech/zbputils/img"
 	"github.com/FloatTech/zbputils/img/text"
 	"github.com/golang/freetype"
 	log "github.com/sirupsen/logrus"
 	"github.com/wcharczuk/go-chart/v2"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
-
-	// 货币系统
-	"github.com/FloatTech/AnimeAPI/wallet"
 )
 
 const (
-	backgroundURL = "https://img.moehu.org/pic.php?id=pc"
+	backgroundURL = "https://iw233.cn/api.php?sort=pc"
+	referer       = "https://weibo.com/"
 	signinMax     = 1
 	// SCOREMAX 分数上限定为1200
 	SCOREMAX = 1200
@@ -54,11 +55,6 @@ func init() {
 		}
 		sdb = initialize(engine.DataFolder() + "score.db")
 	}()
-	zero.OnFullMatch("查看我的钱包").SetBlock(true).Handle(func(ctx *zero.Ctx) {
-		uid := ctx.Event.UserID
-		money := wallet.GetWalletOf(uid)
-		ctx.SendChain(message.At(uid), message.Text("你的钱包当前有", money, "ATRI币"))
-	})
 	engine.OnFullMatch("签到").Limit(ctxext.LimitByUser).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			uid := ctx.Event.UserID
@@ -124,19 +120,19 @@ func init() {
 				return
 			}
 			// 避免图片过大，最大 1280*720
-			back = img.Limit(back, 1280, 720)
+			back = imgfactory.Limit(back, 1280, 720)
 			canvas := gg.NewContext(back.Bounds().Size().X, int(float64(back.Bounds().Size().Y)*1.7))
 			canvas.SetRGB(1, 1, 1)
 			canvas.Clear()
 			canvas.DrawImage(back, 0, 0)
 			monthWord := now.Format("01/02")
 			hourWord := getHourWord(now)
-			_, err = file.GetLazyData(text.BoldFontFile, control.Md5File, true)
+			data, err := file.GetLazyData(text.BoldFontFile, control.Md5File, true)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			if err = canvas.LoadFontFace(text.BoldFontFile, float64(back.Bounds().Size().X)*0.1); err != nil {
+			if err = canvas.ParseFontFace(data, float64(back.Bounds().Size().X)*0.1); err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
@@ -144,12 +140,12 @@ func init() {
 			canvas.DrawString(hourWord, float64(back.Bounds().Size().X)*0.1, float64(back.Bounds().Size().Y)*1.2)
 			canvas.DrawString(monthWord, float64(back.Bounds().Size().X)*0.6, float64(back.Bounds().Size().Y)*1.2)
 			nickName := ctx.CardOrNickName(uid)
-			_, err = file.GetLazyData(text.FontFile, control.Md5File, true)
+			data, err = file.GetLazyData(text.FontFile, control.Md5File, true)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			if err = canvas.LoadFontFace(text.FontFile, float64(back.Bounds().Size().X)*0.04); err != nil {
+			if err = canvas.ParseFontFace(data, float64(back.Bounds().Size().X)*0.04); err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
@@ -174,12 +170,15 @@ func init() {
 			f, err := os.Create(drawedFile)
 			if err != nil {
 				log.Errorln("[score]", err)
-				data, cl := writer.ToBytes(canvas.Image())
+				data, err := imgfactory.ToBytes(canvas.Image())
+				if err != nil {
+					log.Errorln("[score]", err)
+					return
+				}
 				ctx.SendChain(message.ImageBytes(data))
-				cl()
 				return
 			}
-			_, err = writer.WriteTo(canvas.Image(), f)
+			_, err = imgfactory.WriteTo(canvas.Image(), f)
 			_ = f.Close()
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
@@ -275,88 +274,6 @@ func init() {
 			}
 			ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
 		})
-	engine.OnFullMatch("查看钱包排名", zero.OnlyGroup).Limit(ctxext.LimitByGroup).SetBlock(true).
-		Handle(func(ctx *zero.Ctx) {
-			gid := strconv.FormatInt(ctx.Event.GroupID, 10)
-			today := time.Now().Format("20060102")
-			drawedFile := cachePath + gid + today + "walletRank.png"
-			if file.IsExist(drawedFile) {
-				ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
-				return
-			}
-			// 无缓存获取群员列表
-			temp := ctx.GetThisGroupMemberListNoCache().Array()
-			usergroup := make([]int64, len(temp))
-			for i, info := range temp {
-				usergroup[i] = info.Get("user_id").Int()
-			}
-			// 获取钱包信息
-			st, err := wallet.GetGroupWalletOf(true, usergroup...)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			if len(st) == 0 {
-				ctx.SendChain(message.Text("ERROR: 当前没人获取过ATRI币"))
-				return
-			} else if len(st) > 10 {
-				st = st[:10]
-			}
-			_, err = file.GetLazyData(text.FontFile, control.Md5File, true)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			b, err := os.ReadFile(text.FontFile)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			font, err := freetype.ParseFont(b)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			f, err := os.Create(drawedFile)
-			if err != nil {
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			var bars []chart.Value
-			for _, v := range st {
-				if v.Money != 0 {
-					bars = append(bars, chart.Value{
-						Label: ctx.CardOrNickName(v.UID),
-						Value: float64(v.Money),
-					})
-				}
-			}
-			err = chart.BarChart{
-				Font:  font,
-				Title: "ATRI币排名(1天只刷新1次)",
-				Background: chart.Style{
-					Padding: chart.Box{
-						Top: 40,
-					},
-				},
-				YAxis: chart.YAxis{
-					Range: &chart.ContinuousRange{
-						Min: 0,
-						Max: math.Ceil(bars[0].Value/10) * 10,
-					},
-				},
-				Height:   500,
-				BarWidth: 50,
-				Bars:     bars,
-			}.Render(chart.PNG, f)
-			_ = f.Close()
-			if err != nil {
-				_ = os.Remove(drawedFile)
-				ctx.SendChain(message.Text("ERROR: ", err))
-				return
-			}
-			ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
-		})
 }
 
 func getHourWord(t time.Time) string {
@@ -392,5 +309,14 @@ func initPic(picFile string) error {
 	if file.IsExist(picFile) {
 		return nil
 	}
-	return file.DownloadTo(backgroundURL, picFile, true)
+	defer process.SleepAbout1sTo2s()
+	url, err := bilibili.GetRealURL(backgroundURL)
+	if err != nil {
+		return err
+	}
+	data, err := web.RequestDataWith(web.NewDefaultClient(), url, "", referer, "", nil)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(picFile, data, 0644)
 }
