@@ -1,4 +1,4 @@
-// Package kokomi 原神面板v2.4.1
+// Package kokomi 原神面板v2.4.2
 package kokomi
 
 import (
@@ -14,7 +14,7 @@ import (
 	"time"
 
 	//"unicode/utf8"
-	"github.com/FloatTech/ZeroBot-Plugin/kanban"
+	kanban "github.com/FloatTech/ZeroBot-Plugin/kanban/banner"
 	"github.com/FloatTech/floatbox/web"
 	"github.com/FloatTech/imgfactory"
 	ctrl "github.com/FloatTech/zbpctrl"
@@ -30,10 +30,10 @@ import (
 
 const (
 	//tu       = "https://api.yimian.xyz/img?type=moe&size=1920x1080"
-	NameFont = "plugin/kokomi/data/font/NZBZ.ttf"        // 名字字体
-	FontFile = "plugin/kokomi/data/font/sakura.ttf"      // 汉字字体
-	FiFile   = "plugin/kokomi/data/font/tttgbnumber.ttf" // 其余字体(数字英文)
-	BaFile   = "plugin/kokomi/data/font/STLITI.TTF"      // 华文隶书版本版本号字体
+	NameFont = "plugin/kokomi/data/font/NZBZ.ttf"                    // 名字字体
+	FontFile = "plugin/kokomi/data/font/SourceHanMonoSC-HeavyIt.ttf" // 汉字字体
+	FiFile   = "plugin/kokomi/data/font/tttgbnumber.ttf"             // 其余字体(数字英文)
+	BaFile   = "plugin/kokomi/data/font/STLITI.TTF"                  // 华文隶书版本版本号字体
 )
 
 func init() { // 主函数
@@ -54,7 +54,7 @@ func init() { // 主函数
 			"- 管理员专属指令:\n" +
 			"- (上传|删除)第(1|2)立绘 XX\n",
 	})
-	en.OnRegex(`(?:#|＃)?(.*)面板\s*(?:\[CQ:at,qq=)?(\d+)?`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	en.OnRegex(`^(?:#|＃)?(.*)面板\s*(?:\[CQ:at,qq=)?(\d+)?`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		var allfen = 0.00
 		sqquid := ctx.State["regex_matched"].([]string)[2] // 获取第三者qquid
 		if sqquid == "" {
@@ -73,10 +73,18 @@ func init() { // 主函数
 		}
 		//############################################################判断数据更新,逻辑原因不能合并进switch
 		if str == "更新" {
-			es, err := web.GetData(fmt.Sprintf(url, suid)) // 网站返回结果
+			es, err := web.RequestDataWith(web.NewDefaultClient(),
+				fmt.Sprintf(url, suid), "GET", "",
+				"zerobot-plugin-kokomi",
+				nil,
+			)
 			if err != nil {
-				time.Sleep(500 * time.Microsecond)            //0.5s
-				es, err = web.GetData(fmt.Sprintf(url, suid)) // 网站返回结果
+				time.Sleep(500 * time.Microsecond) //0.5s
+				es, err = web.RequestDataWith(web.NewDefaultClient(),
+					fmt.Sprintf(url, suid), "GET", "",
+					"zerobot-plugin-kokomi",
+					nil,
+				)
 				if err != nil {
 					ctx.SendChain(message.Text("-网站获取角色信息失败"+Config.Postfix, err))
 					return
@@ -203,9 +211,9 @@ func init() { // 主函数
 		const height = 2400 - 360
 		dc := gg.NewContext(1080, height) // 画布大小
 		//*******************************************************
-		role := GetRole(str)
-		if role == nil {
-			ctx.SendChain(message.Text("获取角色失败"))
+		role, err := GetRole(str)
+		if err != nil {
+			ctx.SendChain(message.Text("获取角色失败", err))
 			return
 		}
 		//*******************************************************
@@ -238,9 +246,9 @@ func init() { // 主函数
 		two.DrawImage(resize.Resize(0, 30, Drawstars("#FFCC00", "#FFE43A", alldata.Chars[t].Weapon.Star), resize.Bilinear), 150, 60)
 		//详细
 		if alldata.Chars[t].Weapon.Atk != 0.0 {
-			two.DrawString("攻击力:", 150, 160)
+			two.DrawString("攻击力:", 145, 160)
 		}
-		two.DrawString("精炼:", 245, 120)
+		two.DrawString("精炼:", 240, 120)
 		if err := two.LoadFontFace(FiFile, 30); err != nil { // 字体大小
 			panic(err)
 		}
@@ -624,6 +632,21 @@ func init() { // 主函数
 		one.DrawStringAnchored(Ftoone(alldata.Chars[t].Attr.Cdmg)+"%", 470, 352.5, 1, 0)      //爆伤
 		one.DrawStringAnchored(Ftoone(alldata.Chars[t].Attr.Recharge)+"%", 470, 403.75, 1, 0) //充能
 		one.DrawStringAnchored(Ftoone(addf)+"%", 470, 455, 1, 0)                              //元素加伤
+		//评分权重
+		ttt := []string{
+			strconv.Itoa(Wifequanmap[str].Hp),
+			strconv.Itoa(Wifequanmap[str].Atk),
+			strconv.Itoa(Wifequanmap[str].Def),
+			strconv.Itoa(Wifequanmap[str].Mastery),
+			strconv.Itoa(Wifequanmap[str].Cpct),
+			strconv.Itoa(Wifequanmap[str].Cdmg),
+			strconv.Itoa(Wifequanmap[str].Recharge),
+			strconv.Itoa(Wifequanmap[str].Dmg),
+		}
+		one.SetHexColor("#98F5FF")
+		for i, v := range ttt {
+			one.DrawString(v, 8, 96+51.25*float64(i))
+		}
 
 		dc.DrawImage(Yinying(540, 470, 16, yinyinBlack127), 505, 410) // 背景
 		dc.DrawImage(one.Image(), 505, 410)
@@ -730,7 +753,7 @@ func init() { // 主函数
 		if err := dc.LoadFontFace(BaFile, 30); err != nil {
 			panic(err)
 		}
-		dc.DrawStringAnchored("Created By ZeroBot-Plugin "+kanban.Version+edition, 540, float64(height)-30, 0.5, 0.5)
+		dc.DrawStringAnchored("Created By ZeroBot-Plugin "+kanban.Version+" & "+edition, 540, float64(height)-30, 0.5, 0.5)
 		// 输出图片
 		ff, err := imgfactory.ToBytes(dc.Image()) // 图片放入缓存
 		if err != nil {
@@ -755,10 +778,19 @@ func init() { // 主函数
 		ctx.SendChain(message.Text("-绑定uid" + suid + "成功" + "\n-尝试获取角色面板信息" + Config.Postfix))
 
 		//更新面板程序
-		es, err := web.GetData(fmt.Sprintf(url, suid)) // 网站返回结果
+		//es, err := web.GetData(fmt.Sprintf(url, suid)) // 网站返回结果
+		es, err := web.RequestDataWith(web.NewDefaultClient(),
+			fmt.Sprintf(url, suid), "GET", "",
+			"zerobot-plugin-kokomi",
+			nil,
+		)
 		if err != nil {
-			time.Sleep(500 * time.Microsecond)            //0.5s
-			es, err = web.GetData(fmt.Sprintf(url, suid)) // 网站返回结果
+			time.Sleep(500 * time.Microsecond) //0.5s
+			es, err = web.RequestDataWith(web.NewDefaultClient(),
+				fmt.Sprintf(url, suid), "GET", "",
+				"zerobot-plugin-kokomi",
+				nil,
+			)
 			if err != nil {
 				ctx.SendChain(message.Text("-网站获取角色信息失败"+Config.Postfix, err))
 				return
@@ -858,7 +890,7 @@ func init() { // 主函数
 	})
 
 	//上传立绘,限制群内,权限管理员+
-	en.OnRegex(`^上传第(1|2|一|二)立绘\s*(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	en.OnRegex(`^上传第(1|2|一|二)立绘\s*(.*)`, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		z := ctx.State["regex_matched"].([]string)[1] // 获取编号
 		wifename := ctx.State["regex_matched"].([]string)[2]
 		var pathw string
@@ -930,7 +962,7 @@ func init() { // 主函数
 		}
 	})
 	//删除立绘图,权限同上
-	en.OnRegex(`^删除第(1|2|一|二)立绘\s*(.*)`, zero.OnlyGroup, zero.AdminPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	en.OnRegex(`^删除第(1|2|一|二)立绘\s*(.*)`, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		z := ctx.State["regex_matched"].([]string)[1] // 获取编号
 		wifename := ctx.State["regex_matched"].([]string)[2]
 		var pathw string
@@ -984,7 +1016,7 @@ func init() { // 主函数
 		}
 	})
 	//切换api
-	en.OnRegex(`切换api(\d)?`, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	en.OnRegex(`^切换api(\d)?`, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		z := ctx.State["regex_matched"].([]string)[1] // 获取编号
 		if z != "" {
 			zz, _ := strconv.Atoi(z)
@@ -1008,7 +1040,7 @@ func init() { // 主函数
 	})
 
 	//队伍伤害
-	en.OnRegex(`(?:\[CQ:at,qq=)?(\d+)?\]?\s*(?:#|＃)?队伍伤害\s*((\D+)\s(\D+)\s(\D+)\s(\D+))?`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	en.OnRegex(`^(?:\[CQ:at,qq=)?(\d+)?\]?\s*(?:#|＃)?队伍伤害\s*((\D+)\s(\D+)\s(\D+)\s(\D+))?`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		var alldata Thisdata
 		is := [4]int{}
 		sqquid := ctx.State["regex_matched"].([]string)[1] // 获取第三者qquid
@@ -1037,6 +1069,9 @@ func init() { // 主函数
 			if len(alldata.Chars) == 0 {
 				ctx.SendChain(message.Text("-请在游戏中打开角色展柜,并将想查询的角色进行展示" + "\n-完成上述操作并等待5分钟后,请使用\"更新面板\"获取账号信息" + Config.Postfix))
 				return
+			} else if len(alldata.Chars) < 4 {
+				ctx.SendChain(message.Text("-展示的角色数量不足4" + Config.Postfix))
+				return
 			}
 		}
 
@@ -1058,6 +1093,9 @@ func init() { // 主函数
 				if names[i] == "" {
 					ctx.SendChain(message.Text("Idmap数据缺失"))
 					return
+				} else if names[i] == "空" || names[i] == "荧" || names[i] == "旅行者" {
+					ctx.SendChain(message.Text("-暂不支持空/荧伤害数据" + Config.Postfix))
+					return
 				}
 				var t = -1
 				// 匹配角色
@@ -1075,8 +1113,8 @@ func init() { // 主函数
 			}
 		}
 
-		ctx.SendChain(message.Text("-伤害计算中...\n-队伍配置", fmt.Sprintln(names)))
-		da, err := alldata.Getgroupdata(suid, is)
+		ctx.SendChain(message.Text("-伤害计算中...\n-队伍配置", fmt.Sprint(names)))
+		da, err := alldata.Getgroupdata("123456789", is)
 		if err != nil {
 			ctx.SendChain(message.Text("Error:", err))
 			return
@@ -1210,12 +1248,14 @@ func init() { // 主函数
 					panic(err)
 				}
 				three.SetRGB(1, 1, 1) //白色
-				three.DrawStringAnchored(gdate.Result.ZdlTips0, 250, 40, 0.5, 0)
-				if err := three.LoadFontFace(FontFile, 120); err != nil {
+				strArr := strings.Split(gdate.Result.ZdlTips0, "，")
+				three.DrawStringAnchored(strArr[0], 250, 30, 0.5, 0)
+				three.DrawStringAnchored(strArr[1], 250, 60, 0.5, 0)
+				if err := three.LoadFontFace(FiFile, 120); err != nil {
 					panic(err)
 				}
 				three.SetHexColor("#98F5FF")
-				three.DrawStringAnchored(fmt.Sprintln(gdate.Result.ZdlResult), 250, 160, 0.5, 0)
+				three.DrawStringAnchored(fmt.Sprint(gdate.Result.ZdlResult), 250, 180, 0.5, 0)
 				dc.DrawImage(yingthree, 40, 750)
 				dc.DrawImage(three.Image(), 40, 750)
 			}
@@ -1225,14 +1265,31 @@ func init() { // 主函数
 					panic(err)
 				}
 				four.SetRGB(1, 1, 1) //白色
-				four.DrawString("操作手法", 30, 50)
-				buff := truncation(four, gdate.Result.ComboIntro, 440) //宽减20
-				for i, v := range buff {
-					if v != "" {
-						four.DrawString(v, 30, float64(100+i*35))
-					}
+				four.DrawString("操作手法", 30, 40)
+				/*	buff := truncation(four, gdate.Result.ComboIntro, 440) //宽减20
+					for i, v := range buff {
+						if v != "" {
+							four.DrawString(v, 30, float64(100+i*35))
+						}
+					}*/
+				strArr := strings.Split(gdate.Result.ComboIntro, ",")
+				if err := four.LoadFontFace(FontFile, 30); err != nil {
+					panic(err)
 				}
-
+				var ws, hs float64
+				var c [3]int
+				var a = regexp.MustCompile("^[\u4e00-\u9fa5]$")
+				for _, v := range strArr {
+					if a.MatchString(string([]rune(v)[0:1])) {
+						c = randfill()
+					}
+					four.SetRGB255(c[0], c[1], c[2])
+					if ws >= 440 {
+						ws = 0
+						hs += 50
+					}
+					ws += DrawStringRec(four, v, "#FFFFFF", ws+5, 50+hs) + 15
+				}
 				dc.DrawImage(yingfour, 40, 1000)
 				dc.DrawImage(four.Image(), 40, 1000)
 			}
@@ -1240,7 +1297,7 @@ func init() { // 主函数
 			if err := dc.LoadFontFace(BaFile, 30); err != nil {
 				panic(err)
 			}
-			dc.DrawStringAnchored("Created By ZeroBot-Plugin "+kanban.Version+edition, 540, 1620-30, 0.5, 0.5)
+			dc.DrawStringAnchored("Created By ZeroBot-Plugin "+kanban.Version+" & "+edition, 540, 1620-30, 0.5, 0.5)
 			// 输出图片
 			ff, err := imgfactory.ToBytes(dc.Image()) // 图片放入缓存
 			if err != nil {
@@ -1250,7 +1307,7 @@ func init() { // 主函数
 			ctx.SendChain(message.ImageBytes(ff)) // 输出
 		}
 	})
-	en.OnRegex(`^更新kokomi$`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	en.OnRegex(`^更新kokomi$`, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		path := "plugin/kokomi"
 		output, err := RunCmd(path, "git pull")
 		if err != nil {

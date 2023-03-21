@@ -44,15 +44,15 @@ func (ndata Thisdata) Getgroupdata(uid string, is [4]int) (data []byte, err erro
 // 角色数据转换为 Teyvat Helper 请求格式
 type (
 	TeyvatDetail struct {
-		Name      string `json:"artifacts_name"`
-		Type      string `json:"artifacts_type"`
-		Level     int    `json:"level"`
-		MainTips  string `json:"maintips"`
-		MainValue any    `json:"mainvalue"`
-		Tips1     string `json:"tips1"`
-		Tips2     string `json:"tips2"`
-		Tips3     string `json:"tips3"`
-		Tips4     string `json:"tips4"`
+		Name      string `json:"artifacts_name,omitempty"`
+		Type      string `json:"artifacts_type,omitempty"`
+		Level     int    `json:"level,omitempty"`
+		MainTips  string `json:"maintips,omitempty"`
+		MainValue any    `json:"mainvalue,omitempty"`
+		Tips1     string `json:"tips1,omitempty"`
+		Tips2     string `json:"tips2,omitempty"`
+		Tips3     string `json:"tips3,omitempty"`
+		Tips4     string `json:"tips4,omitempty"`
 	}
 
 	TeyvatData struct {
@@ -147,8 +147,8 @@ func (res *Teyvat) getroeldata(l int, uid string, ndata Thisdata) (*Teyvat, erro
 	s := getServer(uid)
 	v := ndata.Chars[l]
 	name := v.Name
-	role := GetRole(name) // 获取角色
-	if role == nil {
+	role, err := GetRole(name) // 获取角色
+	if err != nil {
 		return nil, lelaerErrorSYS
 	}
 	affix := v.Weapon.Affix
@@ -240,6 +240,7 @@ func (res *Teyvat) getroeldata(l int, uid string, ndata Thisdata) (*Teyvat, erro
 
 	// 圣遗物数据
 	var syws []string = []string{v.Artis.Hua.Set, v.Artis.Yu.Set, v.Artis.Sha.Set, v.Artis.Bei.Set, v.Artis.Guan.Set}
+	teyvatData.Detail = []TeyvatDetail{}
 	for i := 0; i < 5; i++ {
 		var equip sywm
 		switch i {
