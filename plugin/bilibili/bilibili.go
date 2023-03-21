@@ -56,7 +56,7 @@ func init() {
 			"- 查成分 [xxx]\n" +
 			"- 查弹幕 [xxx]\n" +
 			"- 设置b站cookie b_ut=7;buvid3=0;i-wanna-go-back=-1;innersign=0;\n" +
-			"- 更新vup" +
+			"- 更新vup\n" +
 			"Tips: (412就是拦截的意思,建议私聊把cookie设全)\n",
 		PublicDataFolder: "Bilibili",
 	})
@@ -340,7 +340,7 @@ func init() {
 		for i := 0; i < len(danmaku.Data.Data); i++ {
 			totalDanmuku += len(danmaku.Data.Data[i].Danmakus) + 1
 		}
-		cw := 10000
+		cw := 3000
 		mcw := float64(2000)
 		ch := 550 + len(danmaku.Data.Data)*int(faceH) + totalDanmuku*int(danmuH)
 		canvas = gg.NewContext(cw, ch)

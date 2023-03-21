@@ -10,7 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"github.com/FloatTech/AnimeAPI/bilibili"
 	"github.com/FloatTech/floatbox/file"
@@ -31,7 +33,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/FloatTech/ZeroBot-Plugin/kanban"
+	"github.com/FloatTech/ZeroBot-Plugin/kanban/banner"
 
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
@@ -42,7 +44,11 @@ const (
 	referer       = "https://weibo.com/"
 )
 
-var boottime = time.Now()
+var (
+	boottime = time.Now()
+	bgdata   *[]byte
+	bgcount  uintptr
+)
 
 func init() { // 插件主体
 	engine := control.Register("aifalse", &ctrl.Options[*zero.Ctx]{
@@ -134,14 +140,22 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 		return
 	}
 
-	url, err := bilibili.GetRealURL(backgroundURL)
-	if err != nil {
-		return
+	dldata := (*[]byte)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&bgdata))))
+	if dldata == (*[]byte)(nil) || uintptr(time.Since(boottime).Hours()/24) >= atomic.LoadUintptr(&bgcount) {
+		url, err1 := bilibili.GetRealURL(backgroundURL)
+		if err1 != nil {
+			return nil, err1
+		}
+		data, err1 := web.RequestDataWith(web.NewDefaultClient(), url, "", referer, "", nil)
+		if err1 != nil {
+			return nil, err1
+		}
+		atomic.AddUintptr(&bgcount, 1)
+		atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&bgdata)), unsafe.Pointer(&data))
+		dldata = &data
 	}
-	data, err := web.RequestDataWith(web.NewDefaultClient(), url, "", referer, "", nil)
-	if err != nil {
-		return
-	}
+	data := *dldata
+
 	back, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return
@@ -173,7 +187,13 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 		back = imgfactory.Size(back, int(bw*cw/bw), int(bh*cw/bw)).Image()
 		canvas.DrawImage(back, 0, 0)
 	}
-
+	var blurback image.Image
+	bwg := &sync.WaitGroup{}
+	bwg.Add(1)
+	go func() {
+		defer bwg.Done()
+		blurback = imaging.Blur(canvas.Image(), 8)
+	}()
 	wg := &sync.WaitGroup{}
 	wg.Add(5)
 
@@ -186,8 +206,8 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 	go func() {
 		defer wg.Done()
 		titlecard := gg.NewContext(cardw, titlecardh)
-
-		titlecard.DrawImage(imaging.Blur(canvas.Image(), 8), -70, -70)
+		bwg.Wait()
+		titlecard.DrawImage(blurback, -70, -70)
 
 		titlecard.DrawRoundedRectangle(1, 1, float64(titlecard.W()-1*2), float64(titlecardh-1*2), 16)
 		titlecard.SetLineWidth(3)
@@ -239,8 +259,8 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 	go func() {
 		defer wg.Done()
 		basiccard := gg.NewContext(cardw, basiccardh)
-
-		basiccard.DrawImage(imaging.Blur(canvas.Image(), 8), -70, -70-titlecardh-40)
+		bwg.Wait()
+		basiccard.DrawImage(blurback, -70, -70-titlecardh-40)
 
 		basiccard.DrawRoundedRectangle(1, 1, float64(basiccard.W()-1*2), float64(basiccardh-1*2), 16)
 		basiccard.SetLineWidth(3)
@@ -303,7 +323,8 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 	go func() {
 		defer wg.Done()
 		diskcard := gg.NewContext(cardw, diskcardh)
-		diskcard.DrawImage(imaging.Blur(canvas.Image(), 8), -70, -70-titlecardh-40-basiccardh-40)
+		bwg.Wait()
+		diskcard.DrawImage(blurback, -70, -70-titlecardh-40-basiccardh-40)
 
 		diskcard.DrawRoundedRectangle(1, 1, float64(diskcard.W()-1*2), float64(diskcardh-1*2), 16)
 		diskcard.SetLineWidth(3)
@@ -321,6 +342,7 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 		if dslen == 1 {
 			diskcard.SetRGBA255(192, 192, 192, 255)
 			diskcard.DrawRoundedRectangle(40, 40, float64(diskcard.W())-40-100, 50, 12)
+			diskcard.ClipPreserve()
 			diskcard.Fill()
 
 			switch {
@@ -334,7 +356,7 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 
 			diskcard.DrawRoundedRectangle(40, 40, (float64(diskcard.W())-40-100)*diskstate[0].precent*0.01, 50, 12)
 			diskcard.Fill()
-
+			diskcard.ResetClip()
 			diskcard.SetRGBA255(30, 30, 30, 255)
 
 			fw, _ := diskcard.MeasureString(diskstate[0].name)
@@ -378,8 +400,8 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 	go func() {
 		defer wg.Done()
 		moreinfocard := gg.NewContext(cardw, moreinfocardh)
-
-		moreinfocard.DrawImage(imaging.Blur(canvas.Image(), 8), -70, -70-titlecardh-40-basiccardh-40-diskcardh-40)
+		bwg.Wait()
+		moreinfocard.DrawImage(blurback, -70, -70-titlecardh-40-basiccardh-40-diskcardh-40)
 
 		moreinfocard.DrawRoundedRectangle(1, 1, float64(moreinfocard.W()-1*2), float64(moreinfocard.H()-1*2), 16)
 		moreinfocard.SetLineWidth(3)
@@ -416,7 +438,7 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 		shadow.Stroke()
 		shadow.DrawRoundedRectangle(70, float64(70+titlecardh+40), float64(cardw), float64(basiccardh), 16)
 		shadow.Stroke()
-		shadow.DrawRoundedRectangle(70, float64(70+titlecardh+40+basiccardh+40), float64(cardw), float64(basiccardh), 16)
+		shadow.DrawRoundedRectangle(70, float64(70+titlecardh+40+basiccardh+40), float64(cardw), float64(diskcardh), 16)
 		shadow.Stroke()
 		shadow.DrawRoundedRectangle(70, float64(70+titlecardh+40+basiccardh+40+diskcardh+40), float64(cardw), float64(moreinfocardh), 16)
 		shadow.Stroke()
@@ -439,9 +461,9 @@ func drawstatus(m *ctrl.Control[*zero.Ctx], uid int64, botname string) (sendimg 
 		return
 	}
 	canvas.SetRGBA255(0, 0, 0, 255)
-	canvas.DrawStringAnchored("Created By ZeroBot-Plugin "+kanban.Version, float64(canvas.W())/2+3, float64(canvas.H())-70/2+3, 0.5, 0.5)
+	canvas.DrawStringAnchored("Created By ZeroBot-Plugin "+banner.Version, float64(canvas.W())/2+3, float64(canvas.H())-70/2+3, 0.5, 0.5)
 	canvas.SetRGBA255(255, 255, 255, 255)
-	canvas.DrawStringAnchored("Created By ZeroBot-Plugin "+kanban.Version, float64(canvas.W())/2, float64(canvas.H())-70/2, 0.5, 0.5)
+	canvas.DrawStringAnchored("Created By ZeroBot-Plugin "+banner.Version, float64(canvas.W())/2, float64(canvas.H())-70/2, 0.5, 0.5)
 
 	sendimg = canvas.Image()
 	return
@@ -553,23 +575,21 @@ func diskstate() (stateinfo []*status, err error) {
 	if err != nil {
 		return
 	}
-	stateinfo = make([]*status, len(parts))
-	for i, v := range parts {
+	stateinfo = make([]*status, 0, len(parts))
+	for _, v := range parts {
 		mp := v.Mountpoint
+		if strings.HasPrefix(mp, "/snap/") || strings.HasPrefix(mp, "/apex/") {
+			continue
+		}
 		diskusage, err := disk.Usage(mp)
-		usage := ""
-		precent := 0.0
 		if err != nil {
-			usage = err.Error()
-		} else {
-			usage = storagefmt(float64(diskusage.Used)) + " / " + storagefmt(float64(diskusage.Total))
-			precent = math.Round(diskusage.UsedPercent)
+			continue
 		}
-		stateinfo[i] = &status{
-			precent: precent,
+		stateinfo = append(stateinfo, &status{
+			precent: math.Round(diskusage.UsedPercent),
 			name:    mp,
-			text:    []string{usage},
-		}
+			text:    []string{storagefmt(float64(diskusage.Used)) + " / " + storagefmt(float64(diskusage.Total))},
+		})
 	}
 	return stateinfo, nil
 }
