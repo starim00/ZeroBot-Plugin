@@ -54,7 +54,7 @@ func init() { // 插件主体
 			ctx.Send(reply)
 		})
 
-	enr.OnPrefix("设置回复模式", zero.AdminPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	enr.OnPrefix("设置回复模式", zero.UserOrGrpAdmin).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		param := ctx.State["args"].(string)
 		err := replmd.setReplyMode(ctx, param)
 		if err != nil {
