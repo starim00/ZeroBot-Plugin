@@ -19,12 +19,13 @@ import (
 var (
 	engine = control.Register("steam", &ctrl.Options[*zero.Ctx]{
 		DisableOnDefault: false,
+		Extra:            control.ExtraFromString("steam"),
 		Brief:            "steam相关插件",
 		Help: "- steam添加订阅 xxxxxxx (可输入需要绑定的 steamid)\n" +
 			"- steam删除订阅 xxxxxxx (删除你创建的对于 steamid 的绑定)\n" +
 			"- steam查询订阅 (查询本群内所有的绑定对象)\n" +
 			"-----------------------\n" +
-			"- steam绑定 api key xxxxxxx (密钥在steam网站申请, 申请地址: https://steamcommunity.com/dev/registerkey)\n" +
+			"- steam绑定 api key xxxxxxx (密钥在steam网站申请, 申请地址: https://steamcommunity.com/dev/apikey)\n" +
 			"- 查看apikey (查询已经绑定的密钥)\n" +
 			"- 拉取steam订阅 (使用插件定时任务开始)\n" +
 			"-----------------------\n" +

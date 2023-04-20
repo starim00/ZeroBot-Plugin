@@ -436,11 +436,11 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>百度百科</summary>
+  <summary>百科</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/baidu"`
 
-  - [x] 百度/百科[xxx]
+  - [x] 百度/百科/维基/wiki[xxx]
 
 </details>
 <details>
@@ -573,14 +573,6 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>打断复读</summary>
-
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/breakrepeat"`
-
-  - [x] (打断三次以上的复读)
-
-</details>
-<details>
   <summary>藏头诗</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/cangtoushi"`
@@ -661,6 +653,16 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>程序员做饭指南</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/dish"`
+
+  - [x] 怎么做 | 烹饪[菜名]
+
+  - [x] 随机菜谱 | 随便做点菜
+
+</details>
+<details>
   <summary>多功能抽签</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/drawlots"`
@@ -727,7 +729,8 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/font"`
 
-  - [x] (用[终末体|终末变体|紫罗兰体|樱酥体|Consolas体|苹方体])渲染文字xxx
+  - [x] (用[终末体|终末变体|紫罗兰体|樱酥体|Consolas体|粗苹方体|未来荧黑体|Gugi体|八丸体|Impact体|猫啃体|苹方体])渲染(抖动)文字xxx
+
 </details>
 <details>
   <summary>每日运势</summary>
@@ -1247,6 +1250,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 签到
   - [x] 获得签到背景[@xxx] | 获得签到背景
+  - [x] 设置签到预设(0~3)
   - [x] 查看等级排名
   - 注:跨群排行
   - [x] 查看我的钱包
@@ -1279,7 +1283,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 卖萌[@xxx]
 
-  - [x] 抽老婆[@xxx]
+  - [x] 今日老婆[@xxx]
 
   - [x] 黄油角色[@xxx]
 
@@ -1382,7 +1386,17 @@ print("run[CQ:image,file="+j["img"]+"]")
 
   - [x] 来份网易云热评
 
-  </details>
+</details>
+<details>
+  <summary>据意查句</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/wantquotes"`
+
+  - [x] 据意查句 大海
+  
+  - [x] 登录据意查句 
+
+</details>
 <details>
   <summary>星际战甲</summary>
 
@@ -1459,19 +1473,11 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
-  <summary>月幕galgame图</summary>
+  <summary>抽老婆</summary>
 
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/ymgal"`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/wife"`
 
-  - [x] 随机galCG
-
-  - [x] 随机gal表情包
-
-  - [x] galCG[xxx]
-
-  - [x] gal表情包[xxx]
-
-  - [x] 更新gal
+  - [x] 抽老婆
 
 </details>
 <details>
@@ -1520,14 +1526,19 @@ print("run[CQ:image,file="+j["img"]+"]")
 	
 </details>
 <details>
-  <summary>词典匹配回复</summary>
+  <summary>月幕galgame图</summary>
 
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/thesaurus"`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/ymgal"`
 
-  - [x] 切换[kimo|傲娇|可爱]词库
-  - [x] 设置词库触发概率0.x (0<x<9)
+  - [x] 随机galCG
 
-  - 注：由于占用资源较大，默认注释。
+  - [x] 随机gal表情包
+
+  - [x] galCG[xxx]
+
+  - [x] gal表情包[xxx]
+
+  - [x] 更新gal
 
 </details>
 <details>
@@ -1565,6 +1576,23 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 设置回复模式[青云客 | 小爱 | ChatGPT]
 
   - [x] 设置 ChatGPT api key xxx
+
+</details>
+<details>
+  <summary>词典匹配回复</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/thesaurus"`
+
+  - [x] 切换[kimo|傲娇|可爱]词库
+  - [x] 设置词库触发概率0.x (0<x<9)
+
+</details>
+<details>
+  <summary>打断复读</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/breakrepeat"`
+
+  - [x] (打断三次以上的复读)
 
 </details>
 
