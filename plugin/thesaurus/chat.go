@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -180,15 +179,20 @@ func init() {
 			SetBlock(false).
 			Handle(randreply(sm.K))
 		engine.OnMessage(canmatch(tALPACA), func(ctx *zero.Ctx) bool {
-			return !zero.HasPicture(ctx) && alpacapiurl != "" && alpacatoken != ""
+			return alpacapiurl != "" && alpacatoken != ""
 		}).SetBlock(false).Handle(func(ctx *zero.Ctx) {
 			msg := ctx.ExtractPlainText()
 			if msg != "" {
-				data, err := web.RequestDataWithHeaders(http.DefaultClient, alpacapiurl+"/reply?msg="+url.QueryEscape(msg), "GET",
+				data, err := web.RequestDataWithHeaders(http.DefaultClient, alpacapiurl+"/reply", "POST",
 					func(r *http.Request) error {
 						r.Header.Set("Authorization", alpacatoken)
 						return nil
-					}, nil)
+					}, bytes.NewReader(binary.NewWriterF(func(writer *binary.Writer) {
+						_ = json.NewEncoder(writer).Encode(&[]alpacamsg{{
+							Name:    ctx.CardOrNickName(ctx.Event.UserID),
+							Message: msg,
+						}})
+					})))
 				if err != nil {
 					logrus.Warnln("[chat] 🦙 err:", err)
 					return
@@ -219,7 +223,7 @@ func init() {
 						return
 					}
 					if len(m.Msg) > 0 {
-						ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text(m.Msg)))
+						ctx.Send(message.Text(m.Msg))
 					}
 					return
 				}
@@ -233,6 +237,11 @@ type kimo = map[string][]string
 type simai struct {
 	D map[string][]string `yaml:"傲娇"`
 	K map[string][]string `yaml:"可爱"`
+}
+
+type alpacamsg struct {
+	Name    string
+	Message string
 }
 
 const (
