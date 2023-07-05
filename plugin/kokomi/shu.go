@@ -475,6 +475,7 @@ func (n Data) ConvertData() (Thisdata, error) {
 	t.Nickname = n.PlayerInfo.Nickname
 	t.Level = n.PlayerInfo.Level
 	for k, v := range n.AvatarInfoList {
+		name := wife.Idmap(strconv.Itoa(v.AvatarID))
 		//数据处理区
 		adds, addf := "元素加伤:", 0.0
 		if v.FightPropMap.Num30*100 > addf {
@@ -616,7 +617,7 @@ func (n Data) ConvertData() (Thisdata, error) {
 		//导入
 		t.Chars[k] = CharRole{
 			ID:     v.AvatarID,
-			Name:   wife.Idmap(strconv.Itoa(v.AvatarID)),
+			Name:   name,
 			Level:  v.PropMap.Num4001.Val,
 			Fetter: v.FetterInfo.ExpLevel,
 			Cons:   len(v.TalentIDList),
