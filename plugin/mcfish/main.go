@@ -24,7 +24,7 @@ type fishdb struct {
 }
 
 // FishLimit 钓鱼次数上限
-const FishLimit = 50
+const FishLimit = 5000
 
 // 各物品信息
 type jsonInfo struct {
