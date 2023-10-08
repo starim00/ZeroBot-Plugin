@@ -508,7 +508,7 @@ func getBoardElement(groupCode int64) (message.MessageSegment, bool, string) {
 	}
 	// 调用 inkscape 将 svg 图片转化为 png 图片
 	pngFilePath := path.Join(tempFileDir, fmt.Sprintf("%d.png", groupCode))
-	if err := exec.Command("inkscape", "-w", "720", "-h", "720", svgFilePath, "-o", pngFilePath).Run(); err != nil {
+	if err := exec.Command("inkscape", "-w", "720", "-h", "720", svgFilePath, "-e", pngFilePath).Run(); err != nil {
 		log.Debugln("[chess]", "Unable to convert to png.", err)
 		return message.MessageSegment{}, false, "无法生成 png 图片，请检查 inkscape 安装情况及其依赖 libfuse。"
 	}
