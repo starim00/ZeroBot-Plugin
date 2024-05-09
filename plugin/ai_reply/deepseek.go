@@ -37,7 +37,7 @@ type deepSeekRequestBody struct {
 }
 
 const (
-	DeepSeekURL = "https://api.deepseek.com"
+	DeepSeekURL = "https://api.deepseek.com/chat/"
 )
 
 // NewChatGPT ...
