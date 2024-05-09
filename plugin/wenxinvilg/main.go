@@ -20,9 +20,9 @@ import (
 	// 数据库
 	sql "github.com/FloatTech/sqlite"
 	// 百度文心大模型
-	model "github.com/FloatTech/AnimeAPI/wenxinAI/erniemodle"
+	model "github.com/starim00/AnimeAPI/wenxinAI/erniemodle"
 	// 百度文心AI画图API
-	wenxin "github.com/FloatTech/AnimeAPI/wenxinAI/ernievilg"
+	wenxin "github.com/starim00/AnimeAPI/wenxinAI/ernievilg"
 )
 
 const (

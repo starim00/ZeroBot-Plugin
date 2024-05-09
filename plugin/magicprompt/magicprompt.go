@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	hf "github.com/FloatTech/AnimeAPI/huggingface"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/RomiChan/websocket"
+	hf "github.com/starim00/AnimeAPI/huggingface"
 	"github.com/tidwall/gjson"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"

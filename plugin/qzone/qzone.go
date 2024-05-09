@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/FloatTech/AnimeAPI/qzone"
 	"github.com/FloatTech/floatbox/binary"
 	"github.com/FloatTech/floatbox/web"
 	"github.com/FloatTech/gg"
@@ -22,6 +21,7 @@ import (
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/img/text"
 	"github.com/jinzhu/gorm"
+	"github.com/starim00/AnimeAPI/qzone"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )

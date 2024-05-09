@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"time"
 
-	bz "github.com/FloatTech/AnimeAPI/bilibili"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
+	bz "github.com/starim00/AnimeAPI/bilibili"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )

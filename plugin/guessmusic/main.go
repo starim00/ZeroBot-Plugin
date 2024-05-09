@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	wyy "github.com/FloatTech/AnimeAPI/neteasemusic"
 	"github.com/FloatTech/imgfactory"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/pkg/errors"
+	wyy "github.com/starim00/AnimeAPI/neteasemusic"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension/single"
 	"github.com/wdvxdr1123/ZeroBot/message"

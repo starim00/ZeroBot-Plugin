@@ -9,13 +9,13 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/FloatTech/AnimeAPI/setu"
 	fbctxext "github.com/FloatTech/floatbox/ctxext"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/web"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
+	"github.com/starim00/AnimeAPI/setu"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )

@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/FloatTech/AnimeAPI/pixiv"
 	fcext "github.com/FloatTech/floatbox/ctxext"
 	fileutil "github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/math"
@@ -19,6 +18,7 @@ import (
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
 	imagepool "github.com/FloatTech/zbputils/img/pool"
+	"github.com/starim00/AnimeAPI/pixiv"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )

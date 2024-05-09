@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	wyy "github.com/FloatTech/AnimeAPI/neteasemusic"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/web"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/pkg/errors"
+	wyy "github.com/starim00/AnimeAPI/neteasemusic"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
