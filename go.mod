@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Baidu-AIP/golang-sdk v1.1.1
-	github.com/starim00/AnimeAPI v1.0.2
+	github.com/FloatTech/AnimeAPI v1.7.1-0.20240401063926-a06fe89b1362
 	github.com/FloatTech/floatbox v0.0.0-20240502092157-9deaab837c04
 	github.com/FloatTech/gg v1.1.3-0.20230226151425-6ea91286ba08
 	github.com/FloatTech/imgfactory v0.2.2-0.20230413152719-e101cc3606ef
@@ -104,3 +104,5 @@ require (
 replace modernc.org/sqlite => github.com/fumiama/sqlite3 v1.20.0-with-win386
 
 replace github.com/remyoudompheng/bigfft => github.com/fumiama/bigfft v0.0.0-20211011143303-6e0bfa3c836b
+
+replace github.com/FloatTech/AnimeAPI => github.com/starim00/AnimeAPI v1.0.1
