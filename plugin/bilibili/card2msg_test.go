@@ -3,7 +3,7 @@ package bilibili
 import (
 	"testing"
 
-	bz "github.com/FloatTech/AnimeAPI/bilibili"
+	bz "github.com/starim00/AnimeAPI/bilibili"
 )
 
 func TestArticleInfo(t *testing.T) {

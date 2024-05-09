@@ -9,11 +9,11 @@ import (
 	"image"
 	"strings"
 
-	hf "github.com/FloatTech/AnimeAPI/huggingface"
 	"github.com/FloatTech/floatbox/web"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
+	hf "github.com/starim00/AnimeAPI/huggingface"
 	"github.com/tidwall/gjson"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"

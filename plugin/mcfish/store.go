@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/FloatTech/AnimeAPI/wallet"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/math"
 	"github.com/FloatTech/gg"
@@ -16,6 +15,7 @@ import (
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/img/text"
 	"github.com/sirupsen/logrus"
+	"github.com/starim00/AnimeAPI/wallet"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/extension/rate"
 	"github.com/wdvxdr1123/ZeroBot/message"

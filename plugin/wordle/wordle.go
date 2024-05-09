@@ -12,8 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/FloatTech/AnimeAPI/tl"
 	"github.com/FloatTech/imgfactory"
+	"github.com/starim00/AnimeAPI/tl"
 
 	"github.com/FloatTech/floatbox/binary"
 	fcext "github.com/FloatTech/floatbox/ctxext"

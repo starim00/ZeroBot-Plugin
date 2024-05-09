@@ -15,7 +15,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/FloatTech/AnimeAPI/bilibili"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/web"
 	"github.com/FloatTech/gg"
@@ -31,6 +30,7 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/sirupsen/logrus"
+	"github.com/starim00/AnimeAPI/bilibili"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
