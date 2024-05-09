@@ -7,13 +7,13 @@ import (
 	"github.com/RomiChan/syncx"
 	zero "github.com/wdvxdr1123/ZeroBot"
 
-	"github.com/FloatTech/AnimeAPI/aireply"
-	"github.com/FloatTech/AnimeAPI/tts"
-	"github.com/FloatTech/AnimeAPI/tts/baidutts"
-	"github.com/FloatTech/AnimeAPI/tts/genshin"
-	"github.com/FloatTech/AnimeAPI/tts/ttscn"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
+	"github.com/starim00/AnimeAPI/aireply"
+	"github.com/starim00/AnimeAPI/tts"
+	"github.com/starim00/AnimeAPI/tts/baidutts"
+	"github.com/starim00/AnimeAPI/tts/genshin"
+	"github.com/starim00/AnimeAPI/tts/ttscn"
 )
 
 // 数据结构: [4 bits] [4 bits] [8 bits] [8 bits]
