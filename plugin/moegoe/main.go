@@ -10,12 +10,12 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
+	"github.com/FloatTech/AnimeAPI/tts/genshin"
 	"github.com/FloatTech/floatbox/binary"
 	"github.com/FloatTech/floatbox/file"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
-	"github.com/starim00/AnimeAPI/tts/genshin"
 )
 
 const (

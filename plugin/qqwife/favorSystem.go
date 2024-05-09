@@ -20,7 +20,7 @@ import (
 	"github.com/FloatTech/zbputils/img/text"
 
 	// 货币系统
-	"github.com/starim00/AnimeAPI/wallet"
+	"github.com/FloatTech/AnimeAPI/wallet"
 )
 
 // 好感度系统

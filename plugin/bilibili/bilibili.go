@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"time"
 
+	bz "github.com/FloatTech/AnimeAPI/bilibili"
 	fcext "github.com/FloatTech/floatbox/ctxext"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/web"
@@ -25,7 +26,6 @@ import (
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/img/text"
 	log "github.com/sirupsen/logrus"
-	bz "github.com/starim00/AnimeAPI/bilibili"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )

@@ -2,7 +2,7 @@
 package shindan
 
 import (
-	"github.com/starim00/AnimeAPI/shindanmaker"
+	"github.com/FloatTech/AnimeAPI/shindanmaker"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 	"github.com/wdvxdr1123/ZeroBot/utils/helper"

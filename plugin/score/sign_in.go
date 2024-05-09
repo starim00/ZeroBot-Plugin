@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/FloatTech/AnimeAPI/bilibili"
+	"github.com/FloatTech/AnimeAPI/wallet"
 	"github.com/FloatTech/floatbox/file"
 	"github.com/FloatTech/floatbox/process"
 	"github.com/FloatTech/floatbox/web"
@@ -20,8 +22,6 @@ import (
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/img/text"
 	"github.com/golang/freetype"
-	"github.com/starim00/AnimeAPI/bilibili"
-	"github.com/starim00/AnimeAPI/wallet"
 	"github.com/wcharczuk/go-chart/v2"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"

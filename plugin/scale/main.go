@@ -18,9 +18,9 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
+	"github.com/FloatTech/AnimeAPI/nsfw"
+	"github.com/FloatTech/AnimeAPI/scale"
 	"github.com/FloatTech/imgfactory"
-	"github.com/starim00/AnimeAPI/nsfw"
-	"github.com/starim00/AnimeAPI/scale"
 
 	"github.com/FloatTech/floatbox/binary"
 	"github.com/FloatTech/floatbox/file"
