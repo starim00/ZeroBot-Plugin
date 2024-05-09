@@ -198,6 +198,7 @@ github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/starim00/AnimeAPI v1.0.0/go.mod h1:Ru6q5pZUnfMg1iu0M1Hp73q9N3LNIbDr16kjkzyG6Xk=
 github.com/starim00/AnimeAPI v1.0.1/go.mod h1:Ru6q5pZUnfMg1iu0M1Hp73q9N3LNIbDr16kjkzyG6Xk=
+github.com/starim00/AnimeAPI v1.0.2/go.mod h1:uPqHsaN8eNWfmn8NBcKwcfDme7WpuTsAH/sOAd/M7Nk=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
