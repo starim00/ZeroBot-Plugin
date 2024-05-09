@@ -105,6 +105,12 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 				return aireply.NewChatGPT(aireply.ChatGPTURL, k)
 			}
 			return aireply.NewQYK(aireply.QYKURL, aireply.QYKBotName)
+		case 3:
+			k := ཆཏ.k
+			if k != "" {
+				return NewDeepSeek(DeepSeekURL, k)
+			}
+			return aireply.NewXiaoAi(aireply.XiaoAiURL, aireply.XiaoAiBotName)
 		}
 	}
 	return aireply.NewQYK(aireply.QYKURL, aireply.QYKBotName)
