@@ -3,32 +3,33 @@ package aireply
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 )
 
-// ChatGPT GPT回复类
+// DeepSeek 回复类
 type DeepSeek struct {
 	u string
 	k string
 	b []string
 }
 
-// chatGPTResponseBody 响应体
+// deepSeekResponseBody 响应体
 type deepSeekResponseBody struct {
-	ID      string                   `json:"id"`
-	Object  string                   `json:"object"`
-	Created int                      `json:"created"`
-	Model   string                   `json:"model"`
-	Choices []map[string]interface{} `json:"choices"`
-	Usage   map[string]interface{}   `json:"usage"`
+	Choices []struct {
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
 }
 
-// chatGPTRequestBody 请求体
+// deepSeekRequestBody 请求体
 type deepSeekRequestBody struct {
-	Model            string  `json:"model"`
-	Prompt           string  `json:"prompt"`
+	Model    string `json:"model"`
+	Messages []struct {
+		Content string `json:"content"`
+		Role    string `json:"role"`
+	} `json:"messages"`
 	MaxTokens        int     `json:"max_tokens"`
 	Temperature      float32 `json:"temperature"`
 	TopP             int     `json:"top_p"`
@@ -40,7 +41,7 @@ const (
 	DeepSeekURL = "https://api.deepseek.com/chat/"
 )
 
-// NewChatGPT ...
+// NewDeepSeek ...
 func NewDeepSeek(u, key string, banwords ...string) *DeepSeek {
 	return &DeepSeek{u: u, k: key, b: banwords}
 }
@@ -68,8 +69,16 @@ func (c *DeepSeek) TalkPlain(_ int64, msg, nickname string) string {
 
 func deepChat(msg string, apiKey string, url string) string {
 	requestBody := deepSeekRequestBody{
-		Model:            "deepseek-chat",
-		Prompt:           msg,
+		Model: "deepseek-chat",
+		Messages: []struct {
+			Content string `json:"content"`
+			Role    string `json:"role"`
+		}{
+			{
+				Content: msg,
+				Role:    "user",
+			},
+		},
 		MaxTokens:        2048,
 		Temperature:      1.0,
 		TopP:             1,
@@ -100,9 +109,7 @@ func deepChat(msg string, apiKey string, url string) string {
 		return err.Error()
 	}
 	if len(deepResponseBody.Choices) > 0 {
-		for _, v := range deepResponseBody.Choices {
-			return fmt.Sprint(v["text"])
-		}
+		return deepResponseBody.Choices[0].Message.Content
 	}
 	return ""
 }
