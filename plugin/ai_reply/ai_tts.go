@@ -102,9 +102,9 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 		case 2:
 			k := ཆཏ.k
 			if k != "" {
-				return aireply.NewChatGPT(aireply.ChatGPTURL, k)
+				return NewDeepSeek(DeepSeekURL, k)
 			}
-			return aireply.NewQYK(aireply.QYKURL, aireply.QYKBotName)
+			return aireply.NewXiaoAi(aireply.XiaoAiURL, aireply.XiaoAiBotName)
 		case 3:
 			k := ཆཏ.k
 			if k != "" {

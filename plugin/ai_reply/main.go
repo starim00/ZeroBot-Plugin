@@ -16,7 +16,7 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-var replmd = replymode([]string{"青云客", "小爱", "ChatGPT"})
+var replmd = replymode([]string{"青云客", "小爱", "ChatGPT", "DeepSeek"})
 
 var ttsmd = newttsmode()
 
