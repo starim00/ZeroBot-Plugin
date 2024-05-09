@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	bz "github.com/FloatTech/AnimeAPI/bilibili"
 	"github.com/FloatTech/floatbox/binary"
 	"github.com/FloatTech/floatbox/web"
-	bz "github.com/starim00/AnimeAPI/bilibili"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 

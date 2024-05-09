@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/FloatTech/AnimeAPI/wallet"
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/sirupsen/logrus"
-	"github.com/starim00/AnimeAPI/wallet"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )

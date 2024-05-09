@@ -12,9 +12,9 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
+	"github.com/FloatTech/AnimeAPI/ascii2d"
+	"github.com/FloatTech/AnimeAPI/pixiv"
 	"github.com/jozsefsallai/gophersauce"
-	"github.com/starim00/AnimeAPI/ascii2d"
-	"github.com/starim00/AnimeAPI/pixiv"
 
 	"github.com/FloatTech/floatbox/binary"
 	"github.com/FloatTech/floatbox/file"

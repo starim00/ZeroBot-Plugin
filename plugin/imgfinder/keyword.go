@@ -16,7 +16,7 @@ import (
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 
-	"github.com/starim00/AnimeAPI/pixiv"
+	"github.com/FloatTech/AnimeAPI/pixiv"
 
 	"github.com/FloatTech/floatbox/binary"
 	"github.com/FloatTech/floatbox/web"
