@@ -98,9 +98,9 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 	if ok {
 		switch m.GetData(gid) & 0xff {
 		case 0:
-			return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
+			return NewDeepSeek(DeepSeekURL, k)
 		case 1:
-			return aireply.NewLolimiAi(aireply.MomoURL, aireply.MomoBotName)
+			return NewDeepSeek(DeepSeekURL, k)
 		case 2:
 			return aireply.NewQYK(aireply.QYKURL, aireply.QYKBotName)
 		case 3:
@@ -111,17 +111,13 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 			}
 			return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
 		case 5:
-
 			if k != "" {
 				return NewDeepSeek(DeepSeekURL, k)
 			}
 			return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
 		}
 	}
-	if k != "" {
-		return NewDeepSeek(aireply.ChatGPTURL, k)
-	}
-	return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
+	return NewDeepSeek(DeepSeekURL, k)
 }
 
 var ttsins = func() map[string]tts.TTS {
