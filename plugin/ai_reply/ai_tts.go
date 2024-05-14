@@ -107,7 +107,7 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 		case 4:
 			k := ཆཏ.k
 			if k != "" {
-				return NewDeepSeek(DeepSeekURL, k)
+				return aireply.NewChatGPT(aireply.ChatGPTURL, k)
 			}
 			return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
 		case 5:
