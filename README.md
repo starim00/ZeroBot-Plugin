@@ -178,6 +178,16 @@ zerobot [-h] [-m] [-n nickname] [-t token] [-u url] [-g url] [-p prefix] [-d|w] 
 
 </details>
 <details>
+  <summary>聊天时长统计</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/chatcount"`
+
+  - [x] 查询水群@xxx
+
+  - [x] 查看水群排名
+
+</details>
+<details>
   <summary>睡眠管理</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/sleep_manage"`
@@ -1071,6 +1081,14 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>抽扑克</summary>
+  
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/poker"`
+
+  - [x] 抽扑克牌
+
+</details>
+<details>
   <summary>一群一天一夫一妻制群老婆</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"`
@@ -1498,7 +1516,7 @@ print("run[CQ:image,file="+j["img"]+"]")
 <details>
   <summary>人工智能回复</summary>
 
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/ai_reply"`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aireply"`
 
   - [x] @Bot 任意文本(任意一句话回复)
 

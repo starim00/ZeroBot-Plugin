@@ -12,8 +12,10 @@
     nixpkgs,
     flake-utils,
     gomod2nix,
-  }: (
-    flake-utils.lib.eachDefaultSystem
+  }: let
+    allSystems = flake-utils.lib.allSystems;
+  in (
+    flake-utils.lib.eachSystem allSystems
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
 
@@ -22,11 +24,26 @@
       callPackage = pkgs.darwin.apple_sdk_11_0.callPackage or pkgs.callPackage;
     in {
       # doCheck will fail at write files
-      packages.default =
-        (callPackage ./. {
-          inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
-        })
-        .overrideAttrs (_: {doCheck = false;});
+      packages = rec {
+
+        ZeroBot-Plugin =
+          (callPackage ./. {
+            inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
+          })
+          .overrideAttrs (_: {doCheck = false;});
+
+        default = ZeroBot-Plugin;
+
+        docker_builder = pkgs.dockerTools.buildLayeredImage {
+          name = "ZeroBot-Plugin";
+          tag = "latest";
+          contents = [
+            self.packages.${system}.ZeroBot-Plugin
+            pkgs.cacert
+          ];
+        };
+
+      };
       devShells.default = callPackage ./shell.nix {
         inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
       };
