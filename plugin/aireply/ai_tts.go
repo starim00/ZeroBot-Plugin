@@ -94,30 +94,10 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 		gid = -ctx.Event.UserID
 	}
 	k := ཆཏ.k
-	m, ok := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
-	if ok {
-		switch m.GetData(gid) & 0xff {
-		case 0:
-			return NewDeepSeek(DeepSeekURL, k)
-		case 1:
-			return NewDeepSeek(DeepSeekURL, k)
-		case 2:
-			return aireply.NewQYK(aireply.QYKURL, aireply.QYKBotName)
-		case 3:
-			return aireply.NewXiaoAi(aireply.XiaoAiURL, aireply.XiaoAiBotName)
-		case 4:
-			if k != "" {
-				return aireply.NewChatGPT(aireply.ChatGPTURL, k)
-			}
-			return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
-		case 5:
-			if k != "" {
-				return NewDeepSeek(DeepSeekURL, k)
-			}
-			return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
-		}
+	if k != "" {
+		return NewDeepSeek(DeepSeekURL, k)
 	}
-	return NewDeepSeek(DeepSeekURL, k)
+	return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
 }
 
 var ttsins = func() map[string]tts.TTS {
