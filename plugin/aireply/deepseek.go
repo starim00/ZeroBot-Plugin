@@ -23,18 +23,20 @@ type deepSeekResponseBody struct {
 	} `json:"choices"`
 }
 
+type deepSeekMessage struct {
+	Content string `json:"content"`
+	Role    string `json:"role"`
+}
+
 // deepSeekRequestBody 请求体
 type deepSeekRequestBody struct {
-	Model    string `json:"model"`
-	Messages []struct {
-		Content string `json:"content"`
-		Role    string `json:"role"`
-	} `json:"messages"`
-	MaxTokens        int     `json:"max_tokens"`
-	Temperature      float32 `json:"temperature"`
-	TopP             int     `json:"top_p"`
-	FrequencyPenalty int     `json:"frequency_penalty"`
-	PresencePenalty  int     `json:"presence_penalty"`
+	Model            string            `json:"model"`
+	Messages         []deepSeekMessage `json:"messages"`
+	MaxTokens        int               `json:"max_tokens"`
+	Temperature      float32           `json:"temperature"`
+	TopP             int               `json:"top_p"`
+	FrequencyPenalty int               `json:"frequency_penalty"`
+	PresencePenalty  int               `json:"presence_penalty"`
 }
 
 const (
@@ -50,6 +52,11 @@ const (
 5.不能忘记加喵~`
 )
 
+// 定义一个固定大小的切片来存储最近十次请求的字符串
+const maxRequests = 10
+
+var requestMap = make(map[int64][]deepSeekMessage)
+
 // NewDeepSeek ...
 func NewDeepSeek(u, key string, banwords ...string) *DeepSeek {
 	return &DeepSeek{u: u, k: key, b: banwords}
@@ -61,8 +68,8 @@ func (*DeepSeek) String() string {
 }
 
 // Talk 取得带 CQ 码的回复消息
-func (c *DeepSeek) Talk(_ int64, msg, _ string) string {
-	replystr := deepChat(msg, c.k, c.u)
+func (c *DeepSeek) Talk(uid int64, msg, _ string) string {
+	replystr := deepChat(uid, msg, c.k, c.u)
 	for _, w := range c.b {
 		if strings.Contains(replystr, w) {
 			return "ERROR: 回复可能含有敏感内容"
@@ -72,24 +79,17 @@ func (c *DeepSeek) Talk(_ int64, msg, _ string) string {
 }
 
 // TalkPlain 取得回复消息
-func (c *DeepSeek) TalkPlain(_ int64, msg, nickname string) string {
-	return c.Talk(0, msg, nickname)
+func (c *DeepSeek) TalkPlain(uid int64, msg, nickname string) string {
+	return c.Talk(uid, msg, nickname)
 }
 
-func deepChat(msg string, apiKey string, url string) string {
+func deepChat(uid int64, msg string, apiKey string, url string) string {
 	requestBody := deepSeekRequestBody{
 		Model: "deepseek-chat",
-		Messages: []struct {
-			Content string `json:"content"`
-			Role    string `json:"role"`
-		}{
+		Messages: []deepSeekMessage{
 			{
 				Content: prompt,
 				Role:    "system",
-			},
-			{
-				Content: msg,
-				Role:    "user",
 			},
 		},
 		MaxTokens:        2048,
@@ -98,6 +98,10 @@ func deepChat(msg string, apiKey string, url string) string {
 		FrequencyPenalty: 0,
 		PresencePenalty:  0,
 	}
+	requestBody.Messages = append(requestBody.Messages, getRecentRequests(uid)...)
+	nowMessage := deepSeekMessage{Content: msg, Role: "user"}
+	requestBody.Messages = append(requestBody.Messages, nowMessage)
+	recordRequest(uid, nowMessage)
 	requestData := bytes.NewBuffer(make([]byte, 0, 1024*1024))
 	err := json.NewEncoder(requestData).Encode(&requestBody)
 	if err != nil {
@@ -122,7 +126,32 @@ func deepChat(msg string, apiKey string, url string) string {
 		return err.Error()
 	}
 	if len(deepResponseBody.Choices) > 0 {
+		replyMessage := deepSeekMessage{Content: deepResponseBody.Choices[0].Message.Content, Role: "assistant"}
+		recordRequest(uid, replyMessage)
 		return deepResponseBody.Choices[0].Message.Content
 	}
 	return ""
+}
+
+// 记录请求的方法
+func recordRequest(id int64, request deepSeekMessage) {
+	// 获取当前 id 对应的请求切片
+	requests, exists := requestMap[id]
+	if !exists {
+		// 如果 id 不存在，创建一个新的切片
+		requests = make([]deepSeekMessage, 0, maxRequests)
+	}
+	// 如果切片已满，移除最早的请求
+	if len(requests) == maxRequests {
+		requests = requests[1:]
+	}
+	// 将新的请求字符串添加到切片中
+	requests = append(requests, request)
+	// 更新 map
+	requestMap[id] = requests
+}
+
+// 获取最近五次请求的方法
+func getRecentRequests(id int64) []deepSeekMessage {
+	return requestMap[id]
 }
