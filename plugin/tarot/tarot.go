@@ -61,7 +61,7 @@ func init() {
 		PublicDataFolder: "Tarot",
 	}).ApplySingle(ctxext.DefaultSingle)
 
-	cache := engine.DataFolder() + "cache"
+	cache := "cache"
 	_ = os.RemoveAll(cache)
 	err := os.MkdirAll(cache, 0755)
 	if err != nil {
