@@ -182,12 +182,13 @@ func init() {
 			//	imgname = name
 			//}
 			//imgpath := cache + "/" + imgname + ".png"
-
+			logrus.Infof(imgurl)
 			img0, err := engine.GetCustomLazyData(bed, imgurl)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
+			logrus.Infof("%s", img0)
 			ctx.SendChain(message.ImageBytes(img0))
 			//err := pool.SendImageFromPool("pool"+imgname, imgpath, func() error {
 			//	data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
