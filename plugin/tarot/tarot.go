@@ -61,9 +61,43 @@ func init() {
 		PublicDataFolder: "Tarot",
 	}).ApplySingle(ctxext.DefaultSingle)
 
-	cache := "cache"
-	_ = os.RemoveAll(cache)
-	err := os.MkdirAll(cache, 0755)
+	err := os.MkdirAll(engine.DataFolder()+"Reverse/MajorArcana", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"MajorArcana", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Cups", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Cups", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Pentacles", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Pentacles", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Swords", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Swords", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Wands", 0755)
+	if err != nil {
+		panic(err)
+	}
+	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Wands", 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -192,20 +226,16 @@ func init() {
 			if p == 1 {
 				description = card.ReverseDescription
 			}
-			imgurl := bed + reverse[p] + card.ImgURL
+			imgurl := reverse[p] + card.ImgURL
 			tarotmsg := message.Message{message.Text(reasons[rand.Intn(len(reasons))], position[p], "的『", name, "』\n")}
-			var imgmsg message.MessageSegment
+			var imgmsg []byte
 			var err error
-			if p == 1 {
-				imgmsg, err = poolimg(ctx, imgurl, reverse[p][:len(reverse[p])-1]+name, cache)
-			} else {
-				imgmsg, err = poolimg(ctx, imgurl, name, cache)
-			}
+			imgmsg, err = engine.GetCustomLazyData(bed, imgurl)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			tarotmsg = append(tarotmsg, imgmsg)
+			tarotmsg = append(tarotmsg, message.ImageBytes(imgmsg))
 			tarotmsg = append(tarotmsg, message.Text("\n其释义为: ", description))
 			msg[i] = ctxext.FakeSenderForwardNode(ctx, tarotmsg...)
 		}
@@ -218,14 +248,14 @@ func init() {
 		match := ctx.State["regex_matched"].([]string)[1]
 		info, ok := infoMap[match]
 		if ok {
-			imgurl := bed + info.ImgURL
+			imgurl := info.ImgURL
 			var tarotmsg message.Message
-			imgmsg, err := poolimg(ctx, imgurl, match, cache)
+			imgmsg, err := engine.GetCustomLazyData(bed, imgurl)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			tarotmsg = append(tarotmsg, imgmsg)
+			tarotmsg = append(tarotmsg, message.ImageBytes(imgmsg))
 			tarotmsg = append(tarotmsg, message.Text("\n", match, "的含义是~\n『正位』:", info.Description, "\n『逆位』:", info.ReverseDescription))
 			if id := ctx.Send(tarotmsg).ID(); id == 0 {
 				ctx.SendChain(message.Text("ERROR: 可能被风控了"))
@@ -287,19 +317,15 @@ func init() {
 					description = card.ReverseDescription
 				}
 				var tarotmsg message.Message
-				imgurl := bed + reverse[p] + card.ImgURL
-				var imgmsg message.MessageSegment
+				imgurl := reverse[p] + card.ImgURL
+
 				var err error
-				if p == 1 {
-					imgmsg, err = poolimg(ctx, imgurl, reverse[p][:len(reverse[p])-1]+name, cache)
-				} else {
-					imgmsg, err = poolimg(ctx, imgurl, name, cache)
-				}
+				imgmsg, err := engine.GetCustomLazyData(bed, imgurl)
 				if err != nil {
 					ctx.SendChain(message.Text("ERROR: ", err))
 					return
 				}
-				tarotmsg = append(tarotmsg, imgmsg)
+				tarotmsg = append(tarotmsg, message.ImageBytes(imgmsg))
 				build.WriteString(info.Represent[0][i])
 				build.WriteString(":")
 				build.WriteString(position[p])
