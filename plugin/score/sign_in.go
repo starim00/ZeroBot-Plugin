@@ -138,7 +138,13 @@ func init() {
 		}
 		// 更新钱包
 		rank := getrank(level)
-		add := 1 + rand.Intn(10) + rank*5 // 等级越高获得的钱越高
+		score := wallet.GetWalletOf(uid)
+		var add int
+		if score < 100 {
+			add = 100 - score
+		} else {
+			add = 1 + rand.Intn(10) + rank*5 // 等级越高获得的钱越高
+		}
 		go func() {
 			err = wallet.InsertWalletOf(uid, add)
 			if err != nil {
