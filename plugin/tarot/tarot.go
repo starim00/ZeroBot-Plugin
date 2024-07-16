@@ -140,16 +140,16 @@ func init() {
 			if p == 1 {
 				description = card.ReverseDescription
 			}
-			imgurl := reverse[p] + card.ImgURL
-			//imgname := ""
-			//if p == 1 {
-			//	imgname = reverse[p][:len(reverse[p])-1] + name
-			//} else {
-			//	imgname = name
-			//}
-			//imgpath := cache + "/" + imgname + ".png"
+			//imgurl := bed + reverse[p] + card.ImgURL
+			imgname := ""
+			if p == 1 {
+				imgname = reverse[p][:len(reverse[p])-1] + name
+			} else {
+				imgname = name
+			}
+			imgpath := cache + "/" + imgname + ".png"
 
-			img0, err := engine.GetCustomLazyData(bed, imgurl)
+			img0, err := engine.GetCustomLazyData(bed, imgpath)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
