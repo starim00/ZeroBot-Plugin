@@ -140,7 +140,7 @@ func init() {
 			if p == 1 {
 				description = card.ReverseDescription
 			}
-			//imgurl := bed + reverse[p] + card.ImgURL
+			imgurl := bed + reverse[p] + card.ImgURL
 			imgname := ""
 			if p == 1 {
 				imgname = reverse[p][:len(reverse[p])-1] + name
@@ -148,29 +148,22 @@ func init() {
 				imgname = name
 			}
 			imgpath := cache + "/" + imgname + ".png"
-
-			img0, err := engine.GetCustomLazyData(bed, imgpath)
+			err := pool.SendImageFromPool("pool"+imgname, imgpath, func() error {
+				data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
+				if err != nil {
+					return err
+				}
+				f, err := os.Create(imgpath)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				return os.WriteFile(f.Name(), data, 0755)
+			}, ctxext.Send(ctx), ctxext.GetMessage(ctx))
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			ctx.SendChain(message.ImageBytes(img0))
-			//err := pool.SendImageFromPool("pool"+imgname, imgpath, func() error {
-			//	data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	f, err := os.Create(imgpath)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	defer f.Close()
-			//	return os.WriteFile(f.Name(), data, 0755)
-			//}, ctxext.Send(ctx), ctxext.GetMessage(ctx))
-			//if err != nil {
-			//	ctx.SendChain(message.Text("ERROR: ", err))
-			//	return
-			//}
 			process.SleepAbout1sTo2s()
 			ctx.SendChain(message.Text(reasons[rand.Intn(len(reasons))], position[p], "的『", name, "』\n其释义为: ", description))
 			return
