@@ -86,7 +86,7 @@ func init() {
 		btcDate := response.Data.BTC.Quote.CNY.LastUpdated.Format("2006-01-02 15:04:05")
 		ethPrice := response.Data.ETH.Quote.CNY.Price
 		ethDate := response.Data.ETH.Quote.CNY.LastUpdated.Format("2006-01-02 15:04:05")
-		ctx.SendChain(message.Text(fmt.Sprintf("BTC价格：%d,更新时间：%s\nETH价格：%d,更新时间%s", btcPrice, btcDate, ethPrice, ethDate)))
+		ctx.SendChain(message.Text(fmt.Sprintf("BTC价格：%.10f,更新时间：%s\nETH价格：%.10f,更新时间%s", btcPrice, btcDate, ethPrice, ethDate)))
 	})
 }
 
