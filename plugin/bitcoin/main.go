@@ -90,7 +90,7 @@ func init() {
 	})
 }
 
-var key = newApiKeyStore("./data/Bitcoin/bitcoin.key")
+var key = newApiKeyStore("./data/bitcoin/bitcoin.key")
 
 type apiKeyStore struct {
 	k string
