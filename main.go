@@ -62,16 +62,17 @@ import (
 	//                          vvvvvvvvvvvvvv                          //
 	//                               vvvv                               //
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ahsai"            // ahsai tts
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aifalse"          // 服务器监控
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aiwife"           // 随机老婆
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/alipayvoice"      // 支付宝到账语音
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/autowithdraw"     // 触发者撤回时也自动撤回
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baiduaudit"       // 百度内容审核
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/base16384"        // base16384加解密
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/base64gua"        // base64卦加解密
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baseamasiro"      // base天城文加解密
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"         // b站相关
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ahsai"        // ahsai tts
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aifalse"      // 服务器监控
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/aiwife"       // 随机老婆
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/alipayvoice"  // 支付宝到账语音
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/autowithdraw" // 触发者撤回时也自动撤回
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baiduaudit"   // 百度内容审核
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/base16384"    // base16384加解密
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/base64gua"    // base64卦加解密
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baseamasiro"  // base天城文加解密
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"     // b站相关
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bitcoin"
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bookreview"       // 哀伤雪刃吧推书记录
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/chess"            // 国际象棋
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/choose"           // 选择困难症帮手
@@ -217,7 +218,7 @@ func init() {
 	// 直接写死 AccessToken 时，请更改下面第二个参数
 	token := flag.String("t", "xiaohanhan", "Set AccessToken of WSClient.")
 	// 直接写死 URL 时，请更改下面第二个参数
-	url := flag.String("u", "ws://127.0.0.1:18081", "Set Url of WSClient.")
+	url := flag.String("u", "ws://frostnight.asuscomm.cn:28081", "Set Url of WSClient.")
 	// 默认昵称
 	adana := flag.String("n", "寿司", "Set default nickname.")
 	prefix := flag.String("p", "/", "Set command prefix.")

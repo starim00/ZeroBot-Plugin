@@ -47,10 +47,10 @@ func init() {
 		DisableOnDefault:  false,
 		Help:              "- 查询比特币\n- 设置查询KEY xxxx",
 		Brief:             "查询比特币和以太币价格",
-		PrivateDataFolder: "Bitcoin",
+		PrivateDataFolder: "bitcoin",
 	}).ApplySingle(ctxext.DefaultSingle)
 
-	engine.OnRegex(`^设置查询KEY\s*(.*)$`, zero.OnlyPrivate, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+	engine.OnRegex(`^设置查询比特币KEY\s*(.*)$`, zero.OnlyPrivate, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		err := key.set(ctx.State["regex_matched"].([]string)[1])
 		if err != nil {
 			ctx.SendChain(message.Text("ERROR: ", err))
@@ -86,7 +86,7 @@ func init() {
 		btcDate := response.Data.BTC.Quote.CNY.LastUpdated.Format("2006-01-02 15:04:05")
 		ethPrice := response.Data.ETH.Quote.CNY.Price
 		ethDate := response.Data.ETH.Quote.CNY.LastUpdated.Format("2006-01-02 15:04:05")
-		ctx.SendChain(message.Text(fmt.Sprintf("BTC价格：%.10f,更新时间：%s\nETH价格：%.10f,更新时间%s", btcPrice, btcDate, ethPrice, ethDate)))
+		ctx.SendChain(message.Text(fmt.Sprintf("BTC价格：%.10f,更新时间：%s\nETH价格：%.10f,更新时间：%s", btcPrice, btcDate, ethPrice, ethDate)))
 	})
 }
 
