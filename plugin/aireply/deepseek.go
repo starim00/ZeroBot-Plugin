@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 )
 
 // DeepSeek 回复类
@@ -53,9 +55,16 @@ const (
 )
 
 // 定义一个固定大小的切片来存储最近十次请求的字符串
-const maxRequests = 10
+const (
+	maxRequests = 100
+	timeout     = 30 * time.Minute
+)
 
-var requestMap = make(map[int64][]deepSeekMessage)
+var (
+	requestMap = make(map[int64][]deepSeekMessage)
+	timerMap   = make(map[int64]*time.Timer)
+	mapMutex   sync.Mutex
+)
 
 // NewDeepSeek ...
 func NewDeepSeek(u, key string, banwords ...string) *DeepSeek {
@@ -149,6 +158,16 @@ func recordRequest(id int64, request deepSeekMessage) {
 	requests = append(requests, request)
 	// 更新 map
 	requestMap[id] = requests
+	if timer, exists := timerMap[id]; exists {
+		timer.Reset(timeout)
+	} else {
+		timerMap[id] = time.AfterFunc(timeout, func() {
+			mapMutex.Lock()
+			defer mapMutex.Unlock()
+			delete(requestMap, id)
+			delete(timerMap, id)
+		})
+	}
 }
 
 // 获取最近五次请求的方法
