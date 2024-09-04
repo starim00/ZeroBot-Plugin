@@ -2,6 +2,7 @@ package aireply
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/RomiChan/syncx"
@@ -95,7 +96,10 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 	}
 	k := ཆཏ.k
 	if k != "" {
-		return NewDeepSeek(DeepSeekURL, k)
+		var userPrompt UserPrompt
+		uidStr := strconv.FormatInt(ctx.Event.UserID, 10)
+		db.Find("user_prompt", &userPrompt, "where user_id is "+uidStr)
+		return NewDeepSeek(DeepSeekURL, k, userPrompt.Prompt)
 	}
 	return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
 }

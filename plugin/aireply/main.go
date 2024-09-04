@@ -2,6 +2,8 @@
 package aireply
 
 import (
+	sql "github.com/FloatTech/sqlite"
+	"github.com/FloatTech/zbputils/ctxext"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,13 +13,19 @@ import (
 	"github.com/FloatTech/AnimeAPI/tts/genshin"
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
-	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
+type UserPrompt struct {
+	UserId int64  `json:"user_id"`
+	Prompt string `json:"prompt"`
+}
+
 var replmd = replymode([]string{"婧枫", "沫沫", "青云客", "小爱", "ChatGPT", "DeepSeek"})
+
+var db = &sql.Sqlite{}
 
 var ttsmd = newttsmode()
 
@@ -43,6 +51,16 @@ func init() { // 插件主体
 		Help:              "- @Bot 任意文本(任意一句话回复)\n- 设置文字回复模式[婧枫|沫沫|青云客|小爱|ChatGPT]\n- 设置 ChatGPT api key xxx",
 		PrivateDataFolder: "aireply",
 	})
+
+	db.DBPath = enr.DataFolder() + "prompt.db"
+	err := db.Open(time.Hour)
+	if err != nil {
+		panic(err)
+	}
+	err = db.Create("user_prompt", &UserPrompt{})
+	if err != nil {
+		panic(err)
+	}
 
 	enr.OnMessage(zero.OnlyToMe).SetBlock(true).Limit(ctxext.LimitByUser).
 		Handle(func(ctx *zero.Ctx) {
@@ -71,11 +89,23 @@ func init() { // 插件主体
 		}
 		ctx.SendChain(message.Text("设置成功"))
 	})
+	enr.OnRegex(`^设置Prompt\s*(.*)$`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+		prompt := ctx.State["regex_matched"].([]string)[1]
+		if len(prompt) > 1000 {
+			ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("prompt过长，请重新设置"))
+			return
+		}
+		db.Insert("user_prompt", &UserPrompt{
+			UserId: ctx.Event.UserID,
+			Prompt: prompt,
+		})
+		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("设置成功，Prompt为"+prompt))
+	})
 
 	endpre := regexp.MustCompile(`\pP$`)
 	ttscachedir := ent.DataFolder() + "cache/"
 	_ = os.RemoveAll(ttscachedir)
-	err := os.MkdirAll(ttscachedir, 0755)
+	err = os.MkdirAll(ttscachedir, 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -224,4 +254,5 @@ func init() { // 插件主体
 		}
 		ctx.SendChain(message.Text("设置成功"))
 	})
+
 }
