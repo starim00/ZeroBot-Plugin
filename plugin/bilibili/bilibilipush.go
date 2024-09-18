@@ -307,7 +307,7 @@ func getLiveList(uids ...int64) (string, error) {
 func sendDynamic(ctx *zero.Ctx) error {
 	uids := bdb.getAllBuidByDynamic()
 	for _, buid := range uids {
-		time.Sleep(2 * time.Second)
+		time.Sleep(10 * time.Second)
 		cardList, err := getUserDynamicCard(buid, cfg)
 		if err != nil {
 			return err
