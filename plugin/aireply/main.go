@@ -73,12 +73,12 @@ func init() { // 插件主体
 			if aireply == nil {
 				reply = "未配置deepseek key，请使用设置命令设置"
 				time.Sleep(time.Second * 1)
-				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(reply))
+				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(" "+reply))
 			} else {
 				responseMessage := aireply.Talk(gid, ctx.Event.UserID, ctx.CardOrNickName(ctx.Event.UserID), ctx.ExtractPlainText(), zero.BotConfig.NickName[0])
 				reply = responseMessage.Message
 				time.Sleep(time.Second * 1)
-				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(reply))
+				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(" "+reply))
 			}
 			// 回复
 
