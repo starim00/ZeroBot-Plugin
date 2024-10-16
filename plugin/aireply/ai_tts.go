@@ -8,7 +8,6 @@ import (
 	"github.com/RomiChan/syncx"
 	zero "github.com/wdvxdr1123/ZeroBot"
 
-	"github.com/FloatTech/AnimeAPI/aireply"
 	"github.com/FloatTech/AnimeAPI/tts"
 	"github.com/FloatTech/AnimeAPI/tts/baidutts"
 	"github.com/FloatTech/AnimeAPI/tts/genshin"
@@ -89,7 +88,7 @@ func (r replymode) setReplyMode(ctx *zero.Ctx, name string) error {
 	return m.SetData(gid, (m.GetData(gid)&^0xff)|(index&0xff))
 }
 
-func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
+func (r replymode) getReplyMode(ctx *zero.Ctx) *DeepSeek {
 	gid := ctx.Event.GroupID
 	if gid == 0 {
 		gid = -ctx.Event.UserID
@@ -101,7 +100,7 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) aireply.AIReply {
 		db.Find("user_prompt", &userPrompt, "where user_id is "+uidStr)
 		return NewDeepSeek(DeepSeekURL, k, userPrompt.Prompt)
 	}
-	return aireply.NewLolimiAi(aireply.JingfengURL, aireply.JingfengBotName)
+	return nil
 }
 
 var ttsins = func() map[string]tts.TTS {
