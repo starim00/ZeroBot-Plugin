@@ -90,7 +90,6 @@ func (r replymode) setReplyMode(ctx *zero.Ctx, name string) error {
 }
 
 func (r replymode) getReplyMode(ctx *zero.Ctx) *DeepSeek {
-	k := 桑.k
 	gid := ctx.Event.GroupID
 	if gid == 0 {
 		gid = -ctx.Event.UserID
