@@ -78,7 +78,12 @@ func init() { // 插件主体
 				responseMessage := aireply.Talk(gid, ctx.Event.UserID, ctx.CardOrNickName(ctx.Event.UserID), ctx.ExtractPlainText(), zero.BotConfig.NickName[0])
 				reply = responseMessage.Message
 				time.Sleep(time.Second * 1)
-				ctx.SendChain(message.At(ctx.Event.UserID), message.Text(" "+reply))
+				if responseMessage.Target != 0 {
+					ctx.SendChain(message.At(responseMessage.Target), message.Text(" "+reply))
+				} else {
+					ctx.SendChain(message.Text(" " + reply))
+				}
+
 			}
 			// 回复
 
