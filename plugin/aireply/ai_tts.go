@@ -60,6 +60,7 @@ var (
 	原  = newapikeystore("./data/tts/o.txt")
 	ཆཏ = newapikeystore("./data/tts/c.txt")
 	百  = newapikeystore("./data/tts/b.txt")
+	桑  = newapikeystore("./data/tts/s.txt")
 )
 
 type replymode []string
@@ -89,6 +90,7 @@ func (r replymode) setReplyMode(ctx *zero.Ctx, name string) error {
 }
 
 func (r replymode) getReplyMode(ctx *zero.Ctx) *DeepSeek {
+	k := 桑.k
 	gid := ctx.Event.GroupID
 	if gid == 0 {
 		gid = -ctx.Event.UserID

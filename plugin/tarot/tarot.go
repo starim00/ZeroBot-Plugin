@@ -61,43 +61,9 @@ func init() {
 		PublicDataFolder: "Tarot",
 	}).ApplySingle(ctxext.DefaultSingle)
 
-	err := os.MkdirAll(engine.DataFolder()+"Reverse/MajorArcana", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"MajorArcana", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Cups", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Cups", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Pentacles", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Pentacles", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Swords", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Swords", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"Reverse/MinorArcana/Wands", 0755)
-	if err != nil {
-		panic(err)
-	}
-	err = os.MkdirAll(engine.DataFolder()+"MinorArcana/Wands", 0755)
+	cache := engine.DataFolder() + "cache"
+	_ = os.RemoveAll(cache)
+	err := os.MkdirAll(cache, 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -174,37 +140,30 @@ func init() {
 			if p == 1 {
 				description = card.ReverseDescription
 			}
-			imgurl := reverse[p] + card.ImgURL
-			//imgname := ""
-			//if p == 1 {
-			//	imgname = reverse[p][:len(reverse[p])-1] + name
-			//} else {
-			//	imgname = name
-			//}
-			//imgpath := cache + "/" + imgname + ".png"
-
-			img0, err := engine.GetCustomLazyData(bed, imgurl)
+			imgurl := bed + reverse[p] + card.ImgURL
+			imgname := ""
+			if p == 1 {
+				imgname = reverse[p][:len(reverse[p])-1] + name
+			} else {
+				imgname = name
+			}
+			imgpath := cache + "/" + imgname + ".png"
+			err := pool.SendImageFromPool(imgpath, func(pth string) error {
+				data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
+				if err != nil {
+					return err
+				}
+				f, err := os.Create(pth)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				return os.WriteFile(f.Name(), data, 0755)
+			}, ctxext.Send(ctx))
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			ctx.SendChain(message.ImageBytes(img0))
-			//err := pool.SendImageFromPool("pool"+imgname, imgpath, func() error {
-			//	data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	f, err := os.Create(imgpath)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	defer f.Close()
-			//	return os.WriteFile(f.Name(), data, 0755)
-			//}, ctxext.Send(ctx), ctxext.GetMessage(ctx))
-			//if err != nil {
-			//	ctx.SendChain(message.Text("ERROR: ", err))
-			//	return
-			//}
 			process.SleepAbout1sTo2s()
 			ctx.SendChain(message.Text(reasons[rand.Intn(len(reasons))], position[p], "的『", name, "』\n其释义为: ", description))
 			return
@@ -226,16 +185,20 @@ func init() {
 			if p == 1 {
 				description = card.ReverseDescription
 			}
-			imgurl := reverse[p] + card.ImgURL
+			imgurl := bed + reverse[p] + card.ImgURL
 			tarotmsg := message.Message{message.Text(reasons[rand.Intn(len(reasons))], position[p], "的『", name, "』\n")}
-			var imgmsg []byte
+			var imgmsg message.MessageSegment
 			var err error
-			imgmsg, err = engine.GetCustomLazyData(bed, imgurl)
+			if p == 1 {
+				imgmsg, err = poolimg(imgurl, reverse[p][:len(reverse[p])-1]+name, cache)
+			} else {
+				imgmsg, err = poolimg(imgurl, name, cache)
+			}
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			tarotmsg = append(tarotmsg, message.ImageBytes(imgmsg))
+			tarotmsg = append(tarotmsg, imgmsg)
 			tarotmsg = append(tarotmsg, message.Text("\n其释义为: ", description))
 			msg[i] = ctxext.FakeSenderForwardNode(ctx, tarotmsg...)
 		}
@@ -248,14 +211,14 @@ func init() {
 		match := ctx.State["regex_matched"].([]string)[1]
 		info, ok := infoMap[match]
 		if ok {
-			imgurl := info.ImgURL
+			imgurl := bed + info.ImgURL
 			var tarotmsg message.Message
-			imgmsg, err := engine.GetCustomLazyData(bed, imgurl)
+			imgmsg, err := poolimg(imgurl, match, cache)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			tarotmsg = append(tarotmsg, message.ImageBytes(imgmsg))
+			tarotmsg = append(tarotmsg, imgmsg)
 			tarotmsg = append(tarotmsg, message.Text("\n", match, "的含义是~\n『正位』:", info.Description, "\n『逆位』:", info.ReverseDescription))
 			if id := ctx.Send(tarotmsg).ID(); id == 0 {
 				ctx.SendChain(message.Text("ERROR: 可能被风控了"))
@@ -317,15 +280,19 @@ func init() {
 					description = card.ReverseDescription
 				}
 				var tarotmsg message.Message
-				imgurl := reverse[p] + card.ImgURL
-
+				imgurl := bed + reverse[p] + card.ImgURL
+				var imgmsg message.MessageSegment
 				var err error
-				imgmsg, err := engine.GetCustomLazyData(bed, imgurl)
+				if p == 1 {
+					imgmsg, err = poolimg(imgurl, reverse[p][:len(reverse[p])-1]+name, cache)
+				} else {
+					imgmsg, err = poolimg(imgurl, name, cache)
+				}
 				if err != nil {
 					ctx.SendChain(message.Text("ERROR: ", err))
 					return
 				}
-				tarotmsg = append(tarotmsg, message.ImageBytes(imgmsg))
+				tarotmsg = append(tarotmsg, imgmsg)
 				build.WriteString(info.Represent[0][i])
 				build.WriteString(":")
 				build.WriteString(position[p])
@@ -352,17 +319,9 @@ func init() {
 	})
 }
 
-func poolimg(ctx *zero.Ctx, imgurl, imgname, cache string) (msg message.MessageSegment, err error) {
+func poolimg(imgurl, imgname, cache string) (msg message.MessageSegment, err error) {
 	imgfile := cache + "/" + imgname + ".png"
 	aimgfile := file.BOTPATH + "/" + imgfile
-	m, err := pool.GetImage("pool" + imgname)
-	if err == nil {
-		msg = message.Image(m.String())
-		if ctxext.SendToSelf(ctx)(msg) == 0 {
-			msg = msg.Add("cache", "0")
-		}
-		return
-	}
 	if file.IsNotExist(aimgfile) {
 		var data []byte
 		data, err = web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
@@ -380,8 +339,6 @@ func poolimg(ctx *zero.Ctx, imgurl, imgname, cache string) (msg message.MessageS
 			return
 		}
 	}
-	m.SetFile(aimgfile)
-	_, _ = m.Push(ctxext.SendToSelf(ctx), ctxext.GetMessage(ctx))
 	msg = message.Image("file:///" + aimgfile)
 	return
 }
