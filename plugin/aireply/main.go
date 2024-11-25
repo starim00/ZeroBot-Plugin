@@ -64,29 +64,12 @@ func init() { // 插件主体
 
 	enr.OnMessage(zero.OnlyToMe).SetBlock(true).Limit(ctxext.LimitByUser).
 		Handle(func(ctx *zero.Ctx) {
-			gid := ctx.Event.GroupID
-			if gid == 0 {
-				gid = ctx.Event.UserID
-			}
 			aireply := replmd.getReplyMode(ctx)
-			reply := ""
-			if aireply == nil {
-				reply = "未配置deepseek key，请使用设置命令设置"
-				time.Sleep(time.Second * 1)
-				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(" "+reply))
-			} else {
-				responseMessage := aireply.Talk(gid, ctx.Event.UserID, ctx.CardOrNickName(ctx.Event.UserID), ctx.ExtractPlainText(), zero.BotConfig.NickName[0])
-				reply = responseMessage.Message
-				time.Sleep(time.Second * 1)
-				if responseMessage.Target != 0 {
-					ctx.SendChain(message.At(responseMessage.Target), message.Text(" "+reply))
-				} else {
-					ctx.SendChain(message.Text(" " + reply))
-				}
-
-			}
+			reply := message.ParseMessageFromString(aireply.Talk(ctx.Event.UserID, ctx.ExtractPlainText(), zero.BotConfig.NickName[0]))
 			// 回复
-
+			time.Sleep(time.Second * 1)
+			reply = append(reply, message.Reply(ctx.Event.MessageID))
+			ctx.Send(reply)
 		})
 	setReplyMode := func(ctx *zero.Ctx) {
 		param := ctx.State["args"].(string)
@@ -98,14 +81,6 @@ func init() { // 插件主体
 		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("成功"))
 	}
 	enr.OnPrefix("设置文字回复模式", zero.AdminPermission).SetBlock(true).Handle(setReplyMode)
-	enr.OnRegex(`^设置\s*桑帛云\s*api\s*key\s*(.*)$`, zero.OnlyPrivate, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
-		err := 桑.set(ctx.State["regex_matched"].([]string)[1])
-		if err != nil {
-			ctx.SendChain(message.Text("ERROR: ", err))
-			return
-		}
-		ctx.SendChain(message.Text("设置成功"))
-	})
 	enr.OnRegex(`^设置\s*ChatGPT\s*api\s*key\s*(.*)$`, zero.OnlyPrivate, zero.SuperUserPermission).SetBlock(true).Handle(func(ctx *zero.Ctx) {
 		err := ཆཏ.set(ctx.State["regex_matched"].([]string)[1])
 		if err != nil {
@@ -136,15 +111,11 @@ func init() { // 插件主体
 	}
 	ent.OnMessage(zero.OnlyToMe).SetBlock(true).Limit(ctxext.LimitByUser).
 		Handle(func(ctx *zero.Ctx) {
-			gid := ctx.Event.GroupID
-			if gid == 0 {
-				gid = ctx.Event.UserID
-			}
 			msg := ctx.ExtractPlainText()
 			// 获取回复模式
 			r := replmd.getReplyMode(ctx)
 			// 获取回复的文本
-			reply := message.ParseMessageFromString(r.TalkPlain(gid, ctx.Event.UserID, ctx.CardOrNickName(ctx.Event.UserID), msg, zero.BotConfig.NickName[0]).Message)
+			reply := message.ParseMessageFromString(r.TalkPlain(ctx.Event.UserID, msg, zero.BotConfig.NickName[0]))
 			// 过滤掉文字消息
 			filterMsg := make([]message.MessageSegment, 0, len(reply))
 			sb := strings.Builder{}
