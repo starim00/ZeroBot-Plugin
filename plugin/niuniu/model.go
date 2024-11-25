@@ -2,8 +2,10 @@
 package niuniu
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image/png"
 	"math"
 	"math/rand"
 	"sort"
@@ -18,8 +20,8 @@ import (
 )
 
 type model struct {
-	sql sql.Sqlite
 	sync.RWMutex
+	sql sql.Sqlite
 }
 
 type userInfo struct {
@@ -42,7 +44,7 @@ type users []*userInfo
 var (
 	db    = &model{}
 	getdb = fcext.DoOnceOnSuccess(func(ctx *zero.Ctx) bool {
-		db.sql.DBPath = en.DataFolder() + "niuniu.db"
+		db.sql = sql.New(en.DataFolder() + "niuniu.db")
 		err := db.sql.Open(time.Hour * 24)
 		if err != nil {
 			ctx.SendChain(message.Text("ERROR: ", err))
@@ -140,8 +142,8 @@ func (u *userInfo) processNiuNiuAction(t string, props string) (string, error) {
 	load, ok := prop.Load(t)
 	info = *u
 	if props != "" {
-		if !contains(t, dajiaoProp) {
-			return "", errors.New("道具不能混着用哦")
+		if contains(t, dajiaoProp) {
+			return "", errors.New("道具不存在")
 		}
 		if err = u.createUserInfoByProps(props); err != nil {
 			return "", err
@@ -219,8 +221,8 @@ func (u *userInfo) processJJuAction(adduserniuniu *userInfo, t string, props str
 	v, ok := prop.Load(t)
 	info = *u
 	if props != "" {
-		if !contains(t, jjProp) {
-			return "", errors.New("道具不能混着用哦")
+		if contains(t, jjProp) {
+			return "", errors.New("道具不存在")
 		}
 		if err = u.createUserInfoByProps(props); err != nil {
 			return "", err
@@ -275,6 +277,23 @@ func (u *userInfo) purchaseItem(n int) (int, error) {
 	return money, err
 }
 
+func (m users) setupDrawList(ctx *zero.Ctx, t bool) ([]byte, error) {
+	allUsers := make(drawer, len(m))
+	for i, info := range m {
+		allUsers[i] = drawUserRanking{
+			name: ctx.CardOrNickName(info.UID),
+			user: info,
+		}
+	}
+	image, err := allUsers.draw(t)
+	if err != nil {
+		return nil, err
+	}
+	var buf bytes.Buffer
+	err = png.Encode(&buf, image)
+	return buf.Bytes(), err
+}
+
 func (m users) positive() users {
 	var m1 []*userInfo
 	for _, i2 := range m {
@@ -295,7 +314,7 @@ func (m users) negative() users {
 	return m1
 }
 
-func (m users) sort(isDesc bool) users {
+func (m users) sort(isDesc bool) {
 	t := func(i, j int) bool {
 		return m[i].Length < m[j].Length
 	}
@@ -305,12 +324,11 @@ func (m users) sort(isDesc bool) users {
 		}
 	}
 	sort.Slice(m, t)
-	return m
 }
 
 func (m users) ranking(niuniu float64, uid int64) int {
-	result := niuniu > 0
-	for i, user := range m.sort(result) {
+	m.sort(niuniu > 0)
+	for i, user := range m {
 		if user.UID == uid {
 			return i + 1
 		}
@@ -333,7 +351,7 @@ func (db *model) findNiuNiu(gid, uid int64) (userInfo, error) {
 	db.RLock()
 	defer db.RUnlock()
 	u := userInfo{}
-	err := db.sql.Find(strconv.FormatInt(gid, 10), &u, "where UID = "+strconv.FormatInt(uid, 10))
+	err := db.sql.Find(strconv.FormatInt(gid, 10), &u, "WHERE UID = ?", uid)
 	return u, err
 }
 
@@ -347,12 +365,12 @@ func (db *model) insertNiuNiu(u *userInfo, gid int64) error {
 func (db *model) deleteniuniu(gid, uid int64) error {
 	db.Lock()
 	defer db.Unlock()
-	return db.sql.Del(strconv.FormatInt(gid, 10), "where UID = "+strconv.FormatInt(uid, 10))
+	return db.sql.Del(strconv.FormatInt(gid, 10), "WHERE UID = ?", uid)
 }
 
 func (db *model) readAllTable(gid int64) (users, error) {
 	db.Lock()
 	defer db.Unlock()
-	a, err := sql.FindAll[userInfo](&db.sql, strconv.FormatInt(gid, 10), "where UserCount  = 0")
+	a, err := sql.FindAll[userInfo](&db.sql, strconv.FormatInt(gid, 10), "WHERE UserCount  = 0")
 	return a, err
 }
