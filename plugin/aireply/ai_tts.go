@@ -2,6 +2,9 @@ package aireply
 
 import (
 	"errors"
+	"github.com/FloatTech/floatbox/binary"
+	"github.com/FloatTech/floatbox/file"
+	"os"
 	"strconv"
 	"strings"
 
@@ -10,7 +13,6 @@ import (
 
 	"github.com/FloatTech/AnimeAPI/tts"
 	"github.com/FloatTech/AnimeAPI/tts/baidutts"
-	"github.com/FloatTech/AnimeAPI/tts/genshin"
 	"github.com/FloatTech/AnimeAPI/tts/lolimi"
 	"github.com/FloatTech/AnimeAPI/tts/ttscn"
 	ctrl "github.com/FloatTech/zbpctrl"
@@ -57,11 +59,32 @@ var ttscnspeakers = [...]string{
 const defaultttsindexkey = -2905
 
 var (
-	原  = newapikeystore("./data/tts/o.txt")
-	ཆཏ = newapikeystore("./data/tts/c.txt")
-	百  = newapikeystore("./data/tts/b.txt")
-	桑  = newapikeystore("./data/tts/s.txt")
+	原  = newApiKeyStore("./data/tts/o.txt")
+	ཆཏ = newApiKeyStore("./data/tts/c.txt")
+	百  = newApiKeyStore("./data/tts/b.txt")
+	桑  = newApiKeyStore("./data/tts/s.txt")
 )
+
+type apiKeyStore struct {
+	k string
+	p string
+}
+
+func newApiKeyStore(p string) (s apiKeyStore) {
+	s.p = p
+	if file.IsExist(p) {
+		data, err := os.ReadFile(p)
+		if err == nil {
+			s.k = binary.BytesToString(data)
+		}
+	}
+	return
+}
+
+func (s *apiKeyStore) set(k string) error {
+	s.k = k
+	return os.WriteFile(s.p, binary.StringToBytes(k), 0644)
+}
 
 type replymode []string
 
@@ -106,15 +129,15 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) *DeepSeek {
 
 var ttsins = func() map[string]tts.TTS {
 	m := make(map[string]tts.TTS, 512)
-	for _, mode := range append(genshin.SoundList[:], extrattsname...) {
+	for _, mode := range extrattsname {
 		m[mode] = nil
 	}
 	return m
 }()
 
 var ttsModes = func() []string {
-	s := append(genshin.SoundList[:], make([]string, baiduttsindex-len(genshin.SoundList))...) // 0-200
-	s = append(s, extrattsname...)                                                             // 201 202 ...
+	s := make([]string, baiduttsindex) // 0-200
+	s = append(s, extrattsname...)     // 201 202 ...
 	return s
 }()
 
@@ -157,23 +180,15 @@ func (t *ttsmode) setSoundMode(ctx *zero.Ctx, name string, character int) error 
 		return errors.New("不支持设置语音人物" + name)
 	}
 	var index = int64(-1)
-	for i, s := range genshin.SoundList {
-		if s == name {
-			index = int64(i + 1)
-			break
-		}
-	}
-	if index == -1 {
-		switch name {
-		case extrattsname[0]:
-			index = baiduttsindex
-		case extrattsname[1]:
-			index = ttscnttsindex
-		case extrattsname[2]:
-			index = lolimittsindex
-		default:
-			return errors.New("语音人物" + name + "未注册index")
-		}
+	switch name {
+	case extrattsname[0]:
+		index = baiduttsindex
+	case extrattsname[1]:
+		index = ttscnttsindex
+	case extrattsname[2]:
+		index = lolimittsindex
+	default:
+		return errors.New("语音人物" + name + "未注册index")
 	}
 	m := ctx.State["manager"].(*ctrl.Control[*zero.Ctx])
 	// 按原来的逻辑map存的是前16位
@@ -217,13 +232,7 @@ func (t *ttsmode) getSoundMode(ctx *zero.Ctx) (tts.TTS, error) {
 		case extrattsname[2]:
 			ins = lolimi.NewLolimi(int(i&0xff00) >> 8)
 		default: // 原神
-			k := 原.k
-			if k != "" {
-				ins = genshin.NewGenshin(int(m-1), 原.k)
-				ttsins[mode] = ins
-			} else {
-				ins = lolimi.NewLolimi(int(i&0xff00) >> 8)
-			}
+			return nil, errors.New("no such mode")
 		}
 	}
 	return ins, nil
@@ -246,23 +255,15 @@ func (t *ttsmode) setDefaultSoundMode(name string, character int) error {
 		return errors.New("不支持设置语音人物" + name)
 	}
 	index := int64(-1)
-	for i, s := range genshin.SoundList {
-		if s == name {
-			index = int64(i + 1)
-			break
-		}
-	}
-	if index == -1 {
-		switch name {
-		case extrattsname[0]:
-			index = baiduttsindex
-		case extrattsname[1]:
-			index = ttscnttsindex
-		case extrattsname[2]:
-			index = lolimittsindex
-		default:
-			return errors.New("语音人物" + name + "未注册index")
-		}
+	switch name {
+	case extrattsname[0]:
+		index = baiduttsindex
+	case extrattsname[1]:
+		index = ttscnttsindex
+	case extrattsname[2]:
+		index = lolimittsindex
+	default:
+		return errors.New("语音人物" + name + "未注册index")
 	}
 	m, ok := control.Lookup("tts")
 	if !ok {
