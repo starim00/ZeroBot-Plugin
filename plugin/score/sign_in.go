@@ -3,6 +3,7 @@ package score
 
 import (
 	"encoding/base64"
+	"errors"
 	"io"
 	"math"
 	"math/rand"
@@ -22,13 +23,14 @@ import (
 	"github.com/FloatTech/zbputils/ctxext"
 	"github.com/FloatTech/zbputils/img/text"
 	"github.com/golang/freetype"
+	log "github.com/sirupsen/logrus"
 	"github.com/wcharczuk/go-chart/v2"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
 const (
-	backgroundURL = "https://iw233.cn/api.php?sort=pc"
+	backgroundURL = "https://pic.re/image"
 	referer       = "https://weibo.com/"
 	signinMax     = 1
 	// SCOREMAX 分数上限定为1200
@@ -162,7 +164,7 @@ func init() {
 		}
 		drawimage, err := styles[k](alldata)
 		if err != nil {
-			ctx.SendChain(message.Text("ERROR: ", err))
+			ctx.SendChain(message.Text("签到成功，但签到图生成失败，请勿重复签到:\n", err))
 			return
 		}
 		// done.
@@ -196,7 +198,7 @@ func init() {
 			}
 			picFile := cachePath + uidStr + time.Now().Format("20060102") + ".png"
 			if file.IsNotExist(picFile) {
-				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("请先签到！"))
+				ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("签到背景加载失败"))
 				return
 			}
 			trySendImage(picFile, ctx)
@@ -337,14 +339,15 @@ func initPic(picFile string, uid int64) (avatar []byte, err error) {
 		return
 	}
 	url, err := bilibili.GetRealURL(backgroundURL)
-	if err != nil {
-		return
+	if err == nil {
+		data, err := web.RequestDataWith(web.NewDefaultClient(), url, "", referer, "", nil)
+		if err == nil {
+			return avatar, os.WriteFile(picFile, data, 0644)
+		}
 	}
-	data, err := web.RequestDataWith(web.NewDefaultClient(), url, "", referer, "", nil)
-	if err != nil {
-		return
-	}
-	return avatar, os.WriteFile(picFile, data, 0644)
+	// 获取网络图片失败，使用本地已有的图片
+	log.Error("[score:get online img error]:", err)
+	return avatar, copyImage(picFile)
 }
 
 // 使用"file:"发送图片失败后，改用base64发送
@@ -374,4 +377,48 @@ func trySendImage(filePath string, ctx *zero.Ctx) {
 		ctx.SendChain(message.Text("ERROR: 无法读取图片文件", err))
 		return
 	}
+}
+
+// 从已有签到背景中，复制出一张图片
+func copyImage(picFile string) (err error) {
+	// 读取目录中的文件列表,并随机挑选出一张图片
+	cachePath := engine.DataFolder() + "cache/"
+	files, err := os.ReadDir(cachePath)
+	if err != nil {
+		return err
+	}
+
+	// 随机取10次图片，取到图片就break退出
+	imgNum := len(files)
+	var validFile string
+	for i := 0; i < len(files) && i < 10; i++ {
+		imgFile := files[rand.Intn(imgNum)]
+		if !imgFile.IsDir() && strings.HasSuffix(imgFile.Name(), ".png") && !strings.HasSuffix(imgFile.Name(), "signin.png") {
+			validFile = imgFile.Name()
+			break
+		}
+	}
+	if len(validFile) == 0 {
+		return errors.New("copyImage: no local image")
+	}
+	selectedFile := cachePath + validFile
+
+	// 使用 io.Copy 复制签到背景
+	srcFile, err := os.Open(selectedFile)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(picFile)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return err
+	}
+
+	return err
 }

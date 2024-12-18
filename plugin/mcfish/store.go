@@ -70,29 +70,28 @@ func init() {
 	engine.OnRegex(`^出售(`+strings.Join(thingList, "|")+`)\s*(\d*)$`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
 		uid := ctx.Event.UserID
 		thingName := ctx.State["regex_matched"].([]string)[1]
-		if strings.Contains(thingName, "竿") {
-			times, err := dbdata.checkCanSalesFor(uid, true)
-			if err != nil {
-				ctx.SendChain(message.Text("[ERROR at store.go.75]:", err))
-				return
-			}
-			if times <= 0 {
-				ctx.SendChain(message.Text("出售次数已达到上限,明天再来售卖吧"))
-				return
-			}
-		}
 		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
 		if number == 0 || strings.Contains(thingName, "竿") {
 			number = 1
 		}
-		if checkIsFish(thingName) {
-			residue := dbdata.selectCanSalesFishFor(uid, number)
-			if residue <= 0 {
-				ctx.SendChain(message.Text("一天只能交易100条鱼，明天再来卖鱼吧"))
-				return
-			}
-			number = residue
+
+		// 检测物品交易次数
+		number, err := dbdata.checkCanSalesFor(uid, thingName, number)
+		if err != nil {
+			ctx.SendChain(message.Text("[ERROR at store.go.75]:", err))
+			return
 		}
+		if number <= 0 {
+			var msg string
+			if strings.Contains(thingName, "竿") {
+				msg = "一天只能交易10把鱼竿,明天再来售卖吧"
+			} else {
+				msg = "一天只能交易150次物品(垃圾除外)，明天再来吧~"
+			}
+			ctx.SendChain(message.Text(msg))
+			return
+		}
+
 		articles, err := dbdata.getUserThingInfo(uid, thingName)
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.5]:", err))
@@ -314,12 +313,10 @@ func init() {
 				logrus.Warnln(err)
 			}
 		}
-		// 更新交易鱼类数量
-		if checkIsFish(thingName) {
-			err := dbdata.updateCanSalesFishFor(uid, number)
-			if err != nil {
-				ctx.SendChain(message.Text("[ERROR,记录鱼类交易数量失败，此次交易不记录]:", err))
-			}
+		// 更新交易限制
+		err = dbdata.updateCanSalesFor(uid, thingName, number)
+		if err != nil {
+			ctx.SendChain(message.Text("[ERROR,记录鱼类交易数量失败，此次交易不记录]:", err))
 		}
 
 		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("成功出售", thingName, "：", number, "个", ",你赚到了", pice*number, msg)))
@@ -402,6 +399,12 @@ func init() {
 	})
 	engine.OnRegex(`^购买(`+strings.Join(thingList, "|")+`)\s*(\d*)$`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
 		uid := ctx.Event.UserID
+		thingName := ctx.State["regex_matched"].([]string)[1]
+		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
+		if number == 0 || strings.Contains(thingName, "竿") {
+			number = 1
+		}
+
 		numberOfPole, err := dbdata.getNumberFor(uid, "竿")
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.9.3]:", err))
@@ -411,28 +414,24 @@ func init() {
 			ctx.SendChain(message.Text("你有", numberOfPole, "支鱼竿,大于50支的玩家不允许购买东西"))
 			return
 		}
-		buytimes, err := dbdata.checkCanSalesFor(uid, false)
+
+		// 检测物品交易次数
+		number, err = dbdata.checkCanSalesFor(uid, thingName, number)
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.75]:", err))
 			return
 		}
-		if buytimes <= 0 {
-			ctx.SendChain(message.Text("购买次数已达到上限,明天再来购买吧"))
+		if number <= 0 {
+			var msg string
+			if strings.Contains(thingName, "竿") {
+				msg = "一天只能交易10把鱼竿,明天再来售卖吧"
+			} else {
+				msg = "一天只能交易150次物品，明天再来吧~"
+			}
+			ctx.SendChain(message.Text(msg))
 			return
 		}
-		thingName := ctx.State["regex_matched"].([]string)[1]
-		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
-		if number == 0 {
-			number = 1
-		}
-		if checkIsFish(thingName) {
-			residue := dbdata.selectCanSalesFishFor(uid, number)
-			if residue <= 0 {
-				ctx.SendChain(message.Text("一天只能交易100条鱼，明天再来买鱼吧"))
-				return
-			}
-			number = residue
-		}
+
 		thingInfos, err := dbdata.getStoreThingInfo(thingName)
 		if err != nil {
 			ctx.SendChain(message.Text("[ERROR at store.go.11]:", err))
@@ -650,12 +649,10 @@ func init() {
 				logrus.Warnln(err)
 			}
 		}
-		// 更新交易鱼类数量
-		if checkIsFish(thingName) {
-			err := dbdata.updateCanSalesFishFor(uid, number)
-			if err != nil {
-				ctx.SendChain(message.Text("[ERROR,更新鱼类交易数量失败，此次交易不记录]:", err))
-			}
+		// 更新交易限制
+		err = dbdata.updateCanSalesFor(uid, thingName, number)
+		if err != nil {
+			ctx.SendChain(message.Text("[ERROR,记录鱼类交易数量失败，此次交易不记录]:", err))
 		}
 		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("你用", price, "购买了", number, thingName)))
 	})
