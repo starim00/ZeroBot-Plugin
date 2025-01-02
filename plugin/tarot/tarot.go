@@ -2,7 +2,9 @@
 package tarot
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"io"
 	"math/rand"
 	"os"
 	"strconv"
@@ -16,14 +18,13 @@ import (
 	ctrl "github.com/FloatTech/zbpctrl"
 	"github.com/FloatTech/zbputils/control"
 	"github.com/FloatTech/zbputils/ctxext"
-	"github.com/FloatTech/zbputils/img/pool"
 	"github.com/FloatTech/zbputils/img/text"
 	"github.com/sirupsen/logrus"
 	zero "github.com/wdvxdr1123/ZeroBot"
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-const bed = "https://gitcode.net/shudorcl/zbp-tarot/-/raw/master/"
+const bed = "https://raw.githubusercontent.com/FloatTech/zbpdata/refs/heads/main/Tarot/"
 
 type cardInfo struct {
 	Description        string `json:"description"`
@@ -147,19 +148,21 @@ func init() {
 			} else {
 				imgname = name
 			}
-			imgpath := cache + "/" + imgname + ".png"
-			err := pool.SendImageFromPool(imgpath, func(pth string) error {
-				data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
-				if err != nil {
-					return err
-				}
-				f, err := os.Create(pth)
-				if err != nil {
-					return err
-				}
-				defer f.Close()
-				return os.WriteFile(f.Name(), data, 0755)
-			}, ctxext.Send(ctx))
+			//imgpath := cache + "/" + imgname + ".png"
+			imgmsg, err := poolimg(imgurl, imgname, cache)
+			ctx.SendChain(imgmsg)
+			//err := pool.SendImageFromPool(imgpath, func(pth string) error {
+			//	data, err := web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
+			//	if err != nil {
+			//		return err
+			//	}
+			//	f, err := os.Create(pth)
+			//	if err != nil {
+			//		return err
+			//	}
+			//	defer f.Close()
+			//	return os.WriteFile(f.Name(), data, 0755)
+			//}, ctxext.Send(ctx))
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
@@ -339,6 +342,23 @@ func poolimg(imgurl, imgname, cache string) (msg message.Segment, err error) {
 			return
 		}
 	}
-	msg = message.Image("file:///" + aimgfile)
+	//msg = message.Image("file:///" + aimgfile)
+	imgFile, err := os.Open(aimgfile)
+	if err != nil {
+		msg = message.Text("ERROR: 无法打开文件", err)
+		return
+	}
+	defer imgFile.Close()
+	var encodedFileData strings.Builder
+	encodedFileData.WriteString("base64://")
+	encoder := base64.NewEncoder(base64.StdEncoding, &encodedFileData)
+	_, err = io.Copy(encoder, imgFile)
+	if err != nil {
+		msg = message.Text("ERROR: 无法编码文件内容", err)
+		return
+	}
+	encoder.Close()
+	drawedFileBase64 := encodedFileData.String()
+	msg = message.Image(drawedFileBase64)
 	return
 }
