@@ -327,7 +327,7 @@ func poolimg(imgurl, imgname, cache string) (msg message.Segment, err error) {
 	aimgfile := file.BOTPATH + "/" + imgfile
 	if file.IsNotExist(aimgfile) {
 		var data []byte
-		data, err = web.RequestDataWith(web.NewTLS12Client(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
+		data, err = web.RequestDataWith(web.NewDefaultClient(), imgurl, "GET", "gitcode.net", web.RandUA(), nil)
 		if err != nil {
 			return
 		}
