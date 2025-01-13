@@ -18,7 +18,7 @@ import (
 	"github.com/FloatTech/zbputils/img/text"
 )
 
-const bed = "https://gitea.seku.su/fumiama/senso-ji-omikuji/raw/branch/main/"
+const bed = "https://github.com/fumiama/senso-ji-omikuji/blob/main/"
 
 func init() { // 插件主体
 	engine := control.AutoRegister(&ctrl.Options[*zero.Ctx]{
