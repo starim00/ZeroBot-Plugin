@@ -76,20 +76,16 @@ func init() {
 		}
 
 		// 检测物品交易次数
-		number, err := dbdata.checkCanSalesFor(uid, thingName, number)
-		if err != nil {
-			ctx.SendChain(message.Text("[ERROR at store.go.75]:", err))
-			return
-		}
-		if number <= 0 {
-			var msg string
-			if strings.Contains(thingName, "竿") {
-				msg = "一天只能交易10把鱼竿,明天再来售卖吧"
-			} else {
-				msg = "一天只能交易150次物品(垃圾除外)，明天再来吧~"
+		if strings.Contains(thingName, "竿") {
+			number, err := dbdata.checkCanSalesFor(uid, thingName, number)
+			if err != nil {
+				ctx.SendChain(message.Text("[ERROR,查询购买资质失败]:", err))
+				return
 			}
-			ctx.SendChain(message.Text(msg))
-			return
+			if number <= 0 {
+				ctx.SendChain(message.Text("一天只能交易10把鱼竿,明天再来售卖吧"))
+				return
+			}
 		}
 
 		articles, err := dbdata.getUserThingInfo(uid, thingName)
@@ -397,7 +393,7 @@ func init() {
 		}
 		ctx.Send(message.ReplyWithMessage(ctx.Event.MessageID, message.Text("出售成功,你赚到了", pice, msg)))
 	})
-	engine.OnRegex(`^购买(`+strings.Join(thingList, "|")+`)\s*(\d*)$`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
+	engine.OnRegex(`^购买(`+strings.Join(thingList, "|")+`|初始木竿)\s*(\d*)$`, getdb, refreshFish).SetBlock(true).Limit(limitSet).Handle(func(ctx *zero.Ctx) {
 		uid := ctx.Event.UserID
 		thingName := ctx.State["regex_matched"].([]string)[1]
 		number, _ := strconv.Atoi(ctx.State["regex_matched"].([]string)[2])
@@ -424,9 +420,9 @@ func init() {
 		if number <= 0 {
 			var msg string
 			if strings.Contains(thingName, "竿") {
-				msg = "一天只能交易10把鱼竿,明天再来售卖吧"
+				msg = "一天只能交易10把鱼竿,明天再来购买吧"
 			} else {
-				msg = "一天只能交易150次物品，明天再来吧~"
+				msg = "一天只能购买30次物品，明天再来吧~"
 			}
 			ctx.SendChain(message.Text(msg))
 			return
@@ -476,6 +472,9 @@ func init() {
 				thingPice := (priceList[info.Name] - (durationList[info.Name] - durable) - maintenance*2 +
 					induceLevel*600*discountList["诱钓"]/100 +
 					favorLevel*1800*discountList["海之眷顾"]/100) * discountList[info.Name] / 100
+				if strings.Contains(thingName, "初始木竿") {
+					thingPice = priceList["木竿"] + priceList["木竿"]*discountList["木竿"]/100
+				}
 				pice = append(pice, thingPice)
 			} else {
 				thingPice := priceList[info.Name] * discountList[info.Name] / 100
@@ -621,6 +620,9 @@ func init() {
 				Name:     thing.Name,
 				Number:   1,
 				Other:    thing.Other,
+			}
+			if thingName == "初始木竿" {
+				newCommodity.Name = "木竿"
 			}
 		} else {
 			things, err1 := dbdata.getUserThingInfo(uid, thingName)
@@ -798,6 +800,9 @@ func drawStroeInfoImage(stroeInfo []store) (picImage image.Image, err error) {
 			induceLevel, _ := strconv.Atoi(poleInfo[2])
 			favorLevel, _ := strconv.Atoi(poleInfo[3])
 			pice = (priceList[info.Name] - (durationList[info.Name] - durable) - maintenance*2 + induceLevel*600 + favorLevel*1800) * discountList[info.Name] / 100
+			if strings.Contains(name, "初始木竿") {
+				pice = priceList["木竿"] + priceList["木竿"]*discountList["木竿"]/100
+			}
 		} else {
 			pice = priceList[info.Name] * discountList[info.Name] / 100
 		}
