@@ -120,7 +120,7 @@ func (r replymode) getReplyMode(ctx *zero.Ctx) *DeepSeek {
 	k := ཆཏ.k
 	if k != "" {
 		var userPrompt UserPrompt
-		uidStr := strconv.FormatInt(ctx.Event.UserID, 10)
+		uidStr := strconv.FormatInt(gid, 10)
 		db.Find("user_prompt", &userPrompt, "where user_id is "+uidStr)
 		return NewDeepSeek(DeepSeekURL, k, userPrompt.Prompt)
 	}
