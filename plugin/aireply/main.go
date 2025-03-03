@@ -90,8 +90,12 @@ func init() { // 插件主体
 			ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("prompt过长，请重新设置"))
 			return
 		}
+		gid := ctx.Event.GroupID
+		if gid == 0 {
+			gid = -ctx.Event.UserID
+		}
 		db.Insert("user_prompt", &UserPrompt{
-			UserId: ctx.Event.UserID,
+			UserId: gid,
 			Prompt: prompt,
 		})
 		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("设置成功，Prompt为"+prompt))
