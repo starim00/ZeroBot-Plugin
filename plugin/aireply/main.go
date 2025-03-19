@@ -98,7 +98,16 @@ func init() { // 插件主体
 			UserId: gid,
 			Prompt: prompt,
 		})
+		ClearAllRequests(gid)
 		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text("设置成功，Prompt为"+prompt))
+	})
+	enr.OnRegex(`^清除记忆$`, zero.UserOrGrpAdmin).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+		gid := ctx.Event.GroupID
+		if gid == 0 {
+			gid = -ctx.Event.UserID
+		}
+		ClearAllRequests(gid)
+		ctx.SendChain(message.Text("记忆已清除"))
 	})
 
 	endpre := regexp.MustCompile(`\pP$`)
