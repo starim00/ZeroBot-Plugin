@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	api = "http://127.0.0.1:8005"
+	api = "http://192.168.50.244:8005"
 )
 
 type jmComic struct {
