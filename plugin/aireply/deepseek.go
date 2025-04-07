@@ -102,7 +102,7 @@ func deepChat(uid int64, msg string, apiKey string, url string, p string) string
 		Model: modelName,
 		Messages: []deepSeekMessage{
 			{
-				Content: "你的名字是" + zero.BotConfig.NickName[0] + "。你绝对不会涉及任何政治方面的敏感问题，一旦涉及到这个方面你将回复“ERROR: 回复可能含有敏感内容”",
+				Content: "你的名字是" + zero.BotConfig.NickName[0] + "。",
 				Role:    "system",
 			},
 			{
