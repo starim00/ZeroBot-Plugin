@@ -65,7 +65,7 @@ func init() {
 		messages = append(messages, ctxext.FakeSenderForwardNode(ctx, message.Text("牛牛拍卖行有以下牛牛")))
 		for _, info := range auction {
 			msg := fmt.Sprintf("商品序号: %d\n牛牛原所属: %d\n牛牛价格: %d%s\n牛牛大小: %.2fcm",
-				info.ID+1, info.UserID, info.Money, wallet.GetWalletName(), info.Length)
+				info.ID, info.UserID, info.Money, wallet.GetWalletName(), info.Length)
 			messages = append(messages, ctxext.FakeSenderForwardNode(ctx, message.Text(msg)))
 		}
 		if id := ctx.Send(messages).ID(); id == 0 {
@@ -81,7 +81,7 @@ func init() {
 		for {
 			select {
 			case <-timer.C:
-				ctx.SendChain(message.At(uid), message.Text(" 超时,已自动取消"))
+				ctx.SendChain(message.At(uid), message.Text(" 超时，已自动取消"))
 				return
 			case r := <-recv:
 				answer = r.Event.Message.String()
@@ -90,7 +90,6 @@ func init() {
 					ctx.SendChain(message.Text("ERROR: ", err))
 					return
 				}
-				n--
 				msg, err := niu.Auction(gid, uid, n)
 				if err != nil {
 					ctx.SendChain(message.Text("ERROR:", err))
@@ -108,6 +107,12 @@ func init() {
 		if err != nil {
 			ctx.SendChain(message.Text("ERROR:", err))
 			return
+		}
+		// 数据库操作成功之后，及时删除残留的缓存
+		key := fmt.Sprintf("%d_%d", gid, uid)
+		_, ok := jjCount.Load(key)
+		if ok {
+			jjCount.Delete(key)
 		}
 		ctx.SendChain(message.Reply(ctx.Event.MessageID), message.Text(sell))
 	})
@@ -145,7 +150,7 @@ func init() {
 
 		var messages message.Message
 		messages = append(messages, ctxext.FakeSenderForwardNode(ctx, message.Text("牛牛商店当前售卖的物品如下")))
-		for id := range propMap {
+		for id := 1; id <= len(propMap); id++ {
 			product := propMap[id]
 			productInfo := fmt.Sprintf("商品%d\n商品名: %s\n商品价格: %dATRI币\n商品作用域: %s\n商品描述: %s\n使用次数:%d",
 				id, product.name, product.cost, product.scope, product.description, product.count)
@@ -165,7 +170,7 @@ func init() {
 		for {
 			select {
 			case <-timer.C:
-				ctx.SendChain(message.At(uid), message.Text(" 超时,已自动取消"))
+				ctx.SendChain(message.At(uid), message.Text(" 超时，已自动取消"))
 				return
 			case r := <-recv:
 				answer = r.Event.Message.String()
@@ -196,16 +201,16 @@ func init() {
 		}
 
 		if time.Since(last.TimeLimit) > time.Hour {
-			ctx.SendChain(message.Text("时间已经过期了,牛牛已被收回!"))
+			ctx.SendChain(message.Text("时间已经过期了，牛牛已被收回!"))
 			jjCount.Delete(fmt.Sprintf("%d_%d", gid, uid))
 			return
 		}
 
 		if last.Count < 4 {
-			ctx.SendChain(message.Text("你还没有被厥够4次呢,不能赎牛牛"))
+			ctx.SendChain(message.Text("你还没有被厥够4次呢，不能赎牛牛"))
 			return
 		}
-		ctx.SendChain(message.Text("再次确认一下哦,这次赎牛牛，牛牛长度将会变成", last.Length, "cm\n还需要嘛【是|否】"))
+		ctx.SendChain(message.Text("再次确认一下哦，这次赎牛牛，牛牛长度将会变成", last.Length, "cm\n还需要嘛【是|否】"))
 		recv, cancel := zero.NewFutureEvent("message", 999, false, zero.CheckUser(uid), zero.CheckGroup(gid), zero.RegexRule(`^(是|否)$`)).Repeat()
 		defer cancel()
 		timer := time.NewTimer(2 * time.Minute)
@@ -222,11 +227,11 @@ func init() {
 					return
 				}
 
-				if err := niu.Redeem(gid, uid, last.Length); err == nil {
+				if err := niu.Redeem(gid, uid, last.Length); err != nil {
 					ctx.SendChain(message.Text("ERROR:", err))
 					return
 				}
-
+				// 成功赎回，删除残留的缓存。
 				jjCount.Delete(fmt.Sprintf("%d_%d", gid, uid))
 
 				ctx.SendChain(message.At(uid), message.Text(fmt.Sprintf("恭喜你!成功赎回牛牛,当前长度为:%.2fcm", last.Length)))
@@ -342,8 +347,9 @@ func init() {
 		j := fmt.Sprintf("%d_%d", gid, adduser)
 		count, ok := jjCount.Load(j)
 		var c lastLength
-		// 按照最后一次被jj时的时间计算，超过60分钟则重置
+		// 按照最后一次被 jj 时的时间计算，超过60分钟则重置
 		if !ok {
+			// 第一次被 jj
 			c = lastLength{
 				TimeLimit: time.Now(),
 				Count:     1,
@@ -355,6 +361,7 @@ func init() {
 				Count:     count.Count + 1,
 				Length:    count.Length,
 			}
+			// 超时了，重置
 			if time.Since(c.TimeLimit) > time.Hour {
 				c = lastLength{
 					TimeLimit: time.Now(),
@@ -372,6 +379,9 @@ func init() {
 			)))
 
 			if c.Count >= 4 {
+				if c.Count == 6 {
+					return
+				}
 				id := ctx.SendPrivateMessage(adduser,
 					message.Text(fmt.Sprintf("你在%d群里已经被厥冒烟了，快去群里赎回你原本的牛牛!\n发送:`赎牛牛`即可！", gid)))
 				if id == 0 {
@@ -386,7 +396,7 @@ func init() {
 		key := fmt.Sprintf("%d_%d", gid, uid)
 		data, ok := register.Load(key)
 		switch {
-		case !ok || time.Since(data.TimeLimit) > time.Hour*12:
+		case !ok || time.Since(data.TimeLimit) > time.Hour*24:
 			data = &lastLength{
 				TimeLimit: time.Now(),
 				Count:     1,
@@ -396,6 +406,7 @@ func init() {
 				ctx.SendChain(message.Text("你的钱不够你注销牛牛了，这次注销需要", data.Count*50, wallet.GetWalletName()))
 				return
 			}
+			data.Count++
 		}
 		register.Store(key, data)
 		msg, err := niu.Cancel(gid, uid)
