@@ -104,7 +104,7 @@ func init() {
 			today := time.Now().Format("20060102")
 			drawedFile := fmt.Sprintf("%s%d%s%dwordCount.png", cachePath, gid, today, p)
 			if file.IsExist(drawedFile) {
-				ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
+				ctx.SendChain(message.Image("file://" + file.BOTPATH + "/" + drawedFile))
 				return
 			}
 			messageMap := make(map[string]int, 256)
@@ -187,7 +187,7 @@ func init() {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
+			ctx.SendChain(message.Image("file://" + file.BOTPATH + "/" + drawedFile))
 		})
 }
 

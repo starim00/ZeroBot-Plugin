@@ -220,7 +220,7 @@ func getVideoDownload(cookiecfg *bz.CookieConfig, card bz.Card, cachePath string
 	today := time.Now().Format("20060102")
 	videoFile := fmt.Sprintf("%s%s%s.mp4", cachePath, card.BvID, today)
 	if file.IsExist(videoFile) {
-		msg = append(msg, message.Video("file:///"+file.BOTPATH+"/"+videoFile))
+		msg = append(msg, message.Video("file://"+file.BOTPATH+"/"+videoFile))
 		return
 	}
 	data, err = web.RequestDataWithHeaders(web.NewDefaultClient(), bz.SignURL(fmt.Sprintf(bz.VideoDownloadURL, card.BvID, card.CID)), "GET", func(req *http.Request) error {

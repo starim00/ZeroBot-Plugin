@@ -61,7 +61,7 @@ func init() {
 				ctx.SendChain(message.Text("ERROR: 无法转换midi文件,", err))
 				return
 			}
-			ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + cmidiFile))
+			ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + cmidiFile))
 		})
 	engine.OnRegex("^(个人|团队)听音练习$", zero.OnlyGroup).SetBlock(true).Limit(ctxext.LimitByUser).
 		Handle(func(ctx *zero.Ctx) {
@@ -97,7 +97,7 @@ func init() {
 				return
 			}
 			time.Sleep(time.Millisecond * 500)
-			ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + cmidiFile))
+			ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + cmidiFile))
 			ctx.Send(
 				message.ReplyWithMessage(ctx.Event.MessageID,
 					message.Text("判断上面的音频, 输入音符, 例如C#6"),
@@ -147,7 +147,7 @@ func init() {
 								return
 							}
 							time.Sleep(time.Millisecond * 500)
-							ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + cmidiFile))
+							ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + cmidiFile))
 							ctx.Send(
 								message.ReplyWithMessage(c.Event.MessageID,
 									message.Text("回答错误, 答案是: ", answer, ", 错误次数已达3次, 进入下一关"),
@@ -182,7 +182,7 @@ func init() {
 								return
 							}
 							time.Sleep(time.Millisecond * 500)
-							ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + cmidiFile))
+							ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + cmidiFile))
 							ctx.Send(
 								message.ReplyWithMessage(c.Event.MessageID,
 									message.Text("判断上面的音频, 输入音符, 例如C#6"),
@@ -203,7 +203,7 @@ func init() {
 							return
 						}
 						time.Sleep(time.Millisecond * 500)
-						ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + cmidiFile))
+						ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + cmidiFile))
 						ctx.Send(
 							message.ReplyWithMessage(c.Event.MessageID,
 								message.Text("回答错误, 错误次数为", errorCount, ", 请继续回答"),
@@ -268,7 +268,7 @@ func init() {
 				ctx.SendChain(message.Text("ERROR: 无法转换midi文件,", err))
 				return
 			}
-			ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + cmidiFile))
+			ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + cmidiFile))
 		})
 	engine.OnPrefix("设置音色").SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {

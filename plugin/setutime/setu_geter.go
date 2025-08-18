@@ -165,7 +165,7 @@ func (p *imgpool) push(ctx *zero.Ctx, imgtype string, illust *pixiv.Illust) {
 			return
 		}
 	}
-	msg = message.Image("file:///" + f)
+	msg = message.Image("file://" + f)
 	p.poolmu.Lock()
 	p.pool[imgtype] = append(p.pool[imgtype], &msg)
 	p.poolmu.Unlock()

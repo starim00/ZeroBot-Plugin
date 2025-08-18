@@ -30,7 +30,7 @@ func init() {
 		PrivateDataFolder: "nwife",
 	})
 	base := engine.DataFolder()
-	baseuri := "file:///" + file.BOTPATH + "/" + base
+	baseuri := "file://" + file.BOTPATH + "/" + base
 	engine.OnPrefix("抽wife", zero.OnlyGroup).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {
 			grpf := strconv.FormatInt(ctx.Event.GroupID, 36)

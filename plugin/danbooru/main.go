@@ -41,7 +41,7 @@ func init() { // 插件主体
 				if file.IsNotExist(f) {
 					_ = imgfactory.SavePNG2Path(f, t)
 				}
-				m := message.Message{ctxext.FakeSenderForwardNode(ctx, message.Image("file:///"+file.BOTPATH+"/"+f))}
+				m := message.Message{ctxext.FakeSenderForwardNode(ctx, message.Image("file://"+file.BOTPATH+"/"+f))}
 				m = append(m, ctxext.FakeSenderForwardNode(ctx, message.Text("tags: ", strings.Join(st.tseq, ","))))
 				if id := ctx.Send(m).ID(); id == 0 {
 					ctx.SendChain(message.Text("ERROR: 可能被风控或下载图片用时过长，请耐心等待"))

@@ -116,7 +116,7 @@ func init() {
 			}
 			getMusicSelect(ctx, files, musicName)
 			// 进行猜歌环节
-			ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + outputPath + "0.wav"))
+			ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + outputPath + "0.wav"))
 			var next *zero.FutureEvent
 			if ctx.State["regex_matched"].([]string)[1] == "个人" {
 				next = zero.NewFutureEvent("message", 999, false, zero.OnlyGroup, zero.RegexRule(`^-\S{1,}`), ctx.CheckSession())
@@ -153,7 +153,7 @@ func init() {
 					ctx.SendChain(
 						message.Text("好像有些难度呢,再听这段音频,要仔细听哦"),
 					)
-					ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + outputPath + strconv.Itoa(tickCount) + ".wav"))
+					ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + outputPath + strconv.Itoa(tickCount) + ".wav"))
 				case c := <-recv:
 					wg.Add(1)
 					go func() {
@@ -163,7 +163,7 @@ func init() {
 							tick.Stop()
 							after.Stop()
 							ctx.SendChain(message.Reply(c.Event.MessageID), messageStr)
-							ctx.SendChain(message.Record("file:///" + pathOfMusic + musicName))
+							ctx.SendChain(message.Record("file://" + pathOfMusic + musicName))
 						} else {
 							wait.Reset(40 * time.Second)
 							tick.Reset(105 * time.Second)
@@ -172,7 +172,7 @@ func init() {
 								ctx.SendChain(message.Reply(c.Event.MessageID), messageStr)
 							} else {
 								ctx.SendChain(message.Reply(c.Event.MessageID), messageStr)
-								ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + outputPath + strconv.Itoa(tickCount) + ".wav"))
+								ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + outputPath + strconv.Itoa(tickCount) + ".wav"))
 							}
 						}
 						wg.Done()

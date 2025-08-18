@@ -80,7 +80,7 @@ func init() { // 插件主体
 							logrus.Debugln("[saucenao]下载err:", err1)
 						}
 					}
-					imgs = append(imgs, message.Image("file:///"+f))
+					imgs = append(imgs, message.Image("file://"+f))
 				}
 				txt := message.Text(
 					"标题: ", illust.Title, "\n",

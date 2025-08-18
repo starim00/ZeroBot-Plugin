@@ -75,7 +75,7 @@ func init() {
 					continue
 				}
 			}
-			sk = append(sk, ctxext.FakeSenderForwardNode(ctx, message.Image("file:///"+cachefile)))
+			sk = append(sk, ctxext.FakeSenderForwardNode(ctx, message.Image("file://"+cachefile)))
 		}
 		if id := ctx.SendGroupForwardMessage(
 			ctx.Event.GroupID,

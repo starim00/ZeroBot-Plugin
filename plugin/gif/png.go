@@ -39,7 +39,7 @@ func pa(cc *context, args ...string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgf.InsertUp(tou, 100, 100, 0, 400).Image())
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgf.InsertUp(tou, 100, 100, 0, 400).Image())
 }
 
 // si 撕
@@ -66,7 +66,7 @@ func si(cc *context, args ...string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgf.InsertBottom(im1.Image(), im1.W(), im1.H(), -3, 370).InsertBottom(im2.Image(), im2.W(), im2.H(), 653, 310).Image())
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgf.InsertBottom(im1.Image(), im1.W(), im1.H(), -3, 370).InsertBottom(im2.Image(), im2.W(), im2.H(), 653, 310).Image())
 }
 
 // flipV 上翻,下翻
@@ -79,7 +79,7 @@ func flipV(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.FlipV().Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // flipH 左翻,右翻
@@ -92,7 +92,7 @@ func flipH(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.FlipH().Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // invert 反色
@@ -105,7 +105,7 @@ func invert(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.Invert().Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // blur 反色
@@ -118,7 +118,7 @@ func blur(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.Blur(10).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // grayscale 灰度
@@ -131,7 +131,7 @@ func grayscale(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.Grayscale().Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // invertAndGrayscale 负片
@@ -144,7 +144,7 @@ func invertAndGrayscale(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.Invert().Grayscale().Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // convolve3x3 浮雕
@@ -157,7 +157,7 @@ func convolve3x3(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.Relief().Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // rotate 旋转
@@ -170,7 +170,7 @@ func rotate(cc *context, args ...string) (string, error) {
 	}
 	r, _ := strconv.ParseFloat(args[0], 64)
 	imgnrgba := imgfactory.Rotate(im.Image(), r, 0, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // deformation 变形
@@ -190,7 +190,7 @@ func deformation(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgfactory.Size(im.Image(), w, h).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // alike 你像个xxx一样
@@ -218,7 +218,7 @@ func alike(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertUp(im.Image(), 0, 0, 136, 21).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // marriage
@@ -246,7 +246,7 @@ func marriage(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.InsertUp(imgs[0].Image(), 0, 0, 0, 0).InsertUp(imgs[1].Image(), 0, 0, 800, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // anyasuki 阿尼亚喜欢
@@ -292,7 +292,7 @@ func anyasuki(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (500-l)/2.0, 535)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // alwaysLike 我永远喜欢
@@ -339,7 +339,7 @@ func alwaysLike(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (830-l)/2.0, 559)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // decentKiss 像样的亲亲
@@ -367,7 +367,7 @@ func decentKiss(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.InsertUp(imgs[0].Image(), 0, 0, 0, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // chinaFlag 国旗
@@ -395,7 +395,7 @@ func chinaFlag(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.InsertUp(imgs[0].Image(), 0, 0, 0, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // dontTouch 不要靠近
@@ -423,7 +423,7 @@ func dontTouch(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertUp(im.Image(), 148, 148, 46, 238).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // universal 万能表情 空白表情
@@ -452,7 +452,7 @@ func universal(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (500-l)/2.0, 545)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // interview 采访
@@ -503,7 +503,7 @@ func interview(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (600-l)/2.0, 270)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // need 需要 你可能需要
@@ -531,7 +531,7 @@ func need(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 0, 0, 327, 232).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // paint 这像画吗
@@ -559,7 +559,7 @@ func paint(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(imgfactory.Rotate(im.Image(), 4, 0, 0).Image(), 0, 0, 95, 107).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // painter 小画家
@@ -587,7 +587,7 @@ func painter(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 0, 0, 125, 91).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // perfect 完美
@@ -615,7 +615,7 @@ func perfect(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertUp(im.Image(), 0, 0, 313, 64).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // playGame 玩游戏
@@ -661,7 +661,7 @@ func playGame(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (526-l)/2.0, 483)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // police 出警
@@ -689,7 +689,7 @@ func police(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 0, 0, 224, 46).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // police1 警察
@@ -717,7 +717,7 @@ func police1(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[1].InsertBottom(imgfactory.Rotate(im.Image(), 16, 0, 0).Image(), 0, 0, 37, 291).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // prpr 舔 舔屏 prpr
@@ -745,7 +745,7 @@ func prpr(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(imgfactory.Rotate(im.Image(), 8, 0, 0).Image(), 0, 0, 46, 264).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // safeSense 安全感
@@ -793,7 +793,7 @@ func safeSense(cc *context, args ...string) (string, error) {
 	}
 	canvas.DrawString(args[0][:len(args[0])/2], (430-l/2)/2.0, 40)
 	canvas.DrawString(args[0][len(args[0])/2:], (430-l/2)/2.0, 80)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // support 精神支柱
@@ -821,7 +821,7 @@ func support(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(imgfactory.Rotate(im.Image(), 23, 0, 0).Image(), 0, 0, -172, -17).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // thinkwhat 想什么
@@ -849,7 +849,7 @@ func thinkwhat(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 0, 0, 530, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // wallpaper 墙纸
@@ -877,7 +877,7 @@ func wallpaper(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 0, 0, 260, 580).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // whyatme 为什么at我
@@ -905,7 +905,7 @@ func whyatme(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 0, 0, 42, 13).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // makeFriend 交个朋友
@@ -954,7 +954,7 @@ func makeFriend(cc *context, args ...string) (string, error) {
 	}
 	canvas.Rotate(gg.Radians(-9))
 	canvas.DrawString(args[0], 595, 819)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // backToWork 打工人, 继续干活
@@ -982,7 +982,7 @@ func backToWork(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(imgfactory.Rotate(im.Image(), 25, 0, 0).Image(), 0, 0, 56, 32).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // coupon 兑换券
@@ -1033,7 +1033,7 @@ func coupon(cc *context, args ...string) (string, error) {
 	}
 	canvas.DrawStringAnchored(args[0], 135, 255, 0.5, 0.5)
 	canvas.DrawStringAnchored("（永久有效）", 135, 295, 0.5, 0.5)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // distracted 注意力涣散
@@ -1061,7 +1061,7 @@ func distracted(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := im.InsertUp(imgs[0].Image(), 0, 0, 140, 320).InsertUp(imgs[1].Image(), 0, 0, 0, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // throw 扔
@@ -1089,7 +1089,7 @@ func throw(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertUpC(imgfactory.Rotate(face, float64(rand.Intn(360)), 143, 143).Image(), 0, 0, 86, 249).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // 远离
@@ -1117,7 +1117,7 @@ func yuanli(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 420, 420, 45, 90).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // 不是你老婆
@@ -1145,7 +1145,7 @@ func nowife(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 400, 400, 112, 81).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // youer 你老婆
@@ -1192,7 +1192,7 @@ func youer(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (830-l)/3.0, 630)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // xiaotiamshi 小天使
@@ -1239,7 +1239,7 @@ func xiaotianshi(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (830-l)/10, 50)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // 不要再看这些了
@@ -1267,7 +1267,7 @@ func neko(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(imgfactory.Rotate(im.Image(), 0, 0, 0).Image(), 450, 450, 0, 170).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // 给我变
@@ -1296,7 +1296,7 @@ func bian(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(imgfactory.Rotate(im.Image(), 0, 0, 0).Image(), 380, 380, 225, -20).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // van 玩一下
@@ -1343,7 +1343,7 @@ func van(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (830-l)/10, 50)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }
 
 // eihei 诶嘿
@@ -1371,7 +1371,7 @@ func eihei(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 450, 450, 121, 162).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // fanfa 犯法
@@ -1400,7 +1400,7 @@ func fanfa(cc *context, args ...string) (string, error) {
 	}
 	m1 := imgfactory.Rotate(face, 45, 110, 110)
 	imgnrgba := imgs[0].InsertUp(m1.Image(), 0, 0, 125, 360).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // huai 怀
@@ -1428,7 +1428,7 @@ func huai(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(im.Image(), 640, 640, 0, 0).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // haowan 好玩
@@ -1456,7 +1456,7 @@ func haowan(cc *context, args ...string) (string, error) {
 		return "", err
 	}
 	imgnrgba := imgs[0].InsertBottom(face, 90, 90, 321, 172).Image()
-	return "file:///" + name, imgfactory.SavePNG2Path(name, imgnrgba)
+	return "file://" + name, imgfactory.SavePNG2Path(name, imgnrgba)
 }
 
 // mengbi 蒙蔽
@@ -1503,5 +1503,5 @@ func mengbi(cc *context, args ...string) (string, error) {
 		return "", errors.New("文字消息太长了")
 	}
 	canvas.DrawString(args[0], (1080-l)/2, 1000)
-	return "file:///" + name, canvas.SavePNG(name)
+	return "file://" + name, canvas.SavePNG(name)
 }

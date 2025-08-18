@@ -51,6 +51,6 @@ func init() {
 			ctx.SendChain(message.Text("ERROR: ", err))
 			return
 		}
-		ctx.SendChain(message.File("file:///"+filePath, jmid+".pdf"))
+		ctx.SendChain(message.File("file://"+filePath, jmid+".pdf"))
 	})
 }

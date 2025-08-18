@@ -63,7 +63,7 @@ func init() {
 			today := time.Now().Format("20060102")
 			drawedFile := cachePath + gid + today + "walletRank.png"
 			if file.IsExist(drawedFile) {
-				ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
+				ctx.SendChain(message.Image("file://" + file.BOTPATH + "/" + drawedFile))
 				return
 			}
 			// 无缓存获取群员列表
@@ -137,7 +137,7 @@ func init() {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return
 			}
-			ctx.SendChain(message.Image("file:///" + file.BOTPATH + "/" + drawedFile))
+			ctx.SendChain(message.Image("file://" + file.BOTPATH + "/" + drawedFile))
 		})
 	en.OnPrefix("设置硬币名称", zero.OnlyToMe, zero.SuperUserPermission).SetBlock(true).
 		Handle(func(ctx *zero.Ctx) {

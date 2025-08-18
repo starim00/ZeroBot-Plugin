@@ -57,7 +57,7 @@ func init() {
 			ctx.SendChain(message.Text("ERROR: ", err))
 			return
 		}
-		ctx.SendChain(message.Record("file:///" + file.BOTPATH + "/" + ahsaiFile))
+		ctx.SendChain(message.Record("file://" + file.BOTPATH + "/" + ahsaiFile))
 	})
 }
 
