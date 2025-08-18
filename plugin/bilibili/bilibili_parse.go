@@ -251,6 +251,6 @@ func getVideoDownload(cookiecfg *bz.CookieConfig, card bz.Card, cachePath string
 		err = errors.Errorf("未配置ffmpeg，%v", stderr)
 		return
 	}
-	msg = append(msg, message.Video("file:///"+file.BOTPATH+"/"+videoFile))
+	msg = append(msg, message.Video("file://"+file.BOTPATH+"/"+videoFile))
 	return
 }
