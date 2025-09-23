@@ -26,7 +26,7 @@ func init() {
 	cards := []string{}
 	engine.OnFullMatch("抽老婆", fcext.DoOnceOnSuccess(
 		func(ctx *zero.Ctx) bool {
-			data, err := engine.GetLazyData("wife.json", true)
+			data, err := engine.GetLazyData("wife.json", false)
 			if err != nil {
 				ctx.SendChain(message.Text("ERROR: ", err))
 				return false
