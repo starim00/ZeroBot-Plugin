@@ -1,6 +1,8 @@
 // Package main ZeroBot-Plugin main file
 package main
 
+//go:generate go run github.com/FloatTech/ZeroBot-Plugin/abineundo/ref -r .
+
 import (
 	"encoding/json"
 	"flag"
@@ -12,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/FloatTech/ZeroBot-Plugin/console" // 更改控制台属性
-
-	"github.com/FloatTech/ZeroBot-Plugin/kanban" // 打印 banner
+	_ "github.com/FloatTech/ZeroBot-Plugin/abineundo" // 设置插件优先级
+	_ "github.com/FloatTech/ZeroBot-Plugin/console"   // 更改控制台属性
+	"github.com/FloatTech/ZeroBot-Plugin/kanban"      // 打印 banner
 
 	// ---------以下插件均可通过前面加 // 注释，注释后停用并不加载插件--------- //
 	// ----------------------插件优先级按顺序从高到低---------------------- //
@@ -77,6 +79,8 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/base64gua"         // base64卦加解密
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/baseamasiro"       // base天城文加解密
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibili"          // b站相关
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibiliparse"     // b站相关
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bilibilipush"      // b站相关
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/bookreview"        // 哀伤雪刃吧推书记录
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/chess"             // 国际象棋
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/choose"            // 选择困难症帮手
@@ -146,11 +150,11 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wallet"            // 钱包
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wantquotes"        // 据意查句
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/warframeapi"       // warframeAPI插件
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wenxinvilg"        // 百度文心AI画图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wife"              // 抽老婆
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wordcount"         // 聊天热词
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/wordle"            // 猜单词
-	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ygo"               // 游戏王相关插件
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ygocdb"            // 游戏王白鸽API卡查
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ygotrade"          // 游戏王集换社卡价查询
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/ymgal"             // 月幕galgame
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/yujn"              // 遇见API
 
