@@ -80,6 +80,11 @@ func init() {
 		logrus.Debugln("[aichat] agent mode test: noagent", stor.NoAgent(), "hasapi", chat.AC.AgentAPI != "", "hasmodel", chat.AC.AgentModelName != "")
 		if !stor.NoAgent() && chat.AC.AgentAPI != "" && chat.AC.AgentModelName != "" {
 			logrus.Debugln("[aichat] enter agent mode")
+			if !bool(chat.AC.NoSystemP) {
+				chat.AgentChar = []byte(chat.AC.SystemP)
+			} else {
+				chat.AgentChar = nil
+			}
 			x := deepinfra.NewAPI(chat.AC.AgentAPI, string(chat.AC.AgentKey))
 			mod, err := chat.AC.Type.Protocol(chat.AC.AgentModelName, temperature, topp, maxn)
 			if err != nil {
