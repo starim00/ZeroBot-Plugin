@@ -919,6 +919,15 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>大模型聊天和群聊总结</summary>
+
+  `_ "github.com/FloatTech/ZeroBot-Plugin/plugin/llm"`
+
+  - [x] 群聊总结 [消息数目]|群聊总结 1000
+  - [x] /gpt [内容]（使用大模型聊天）
+
+</details>
+<details>
   <summary>kokomi原神面板</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/kokomi"`
@@ -1516,6 +1525,16 @@ print("run[CQ:image,file="+j["img"]+"]")
 
 </details>
 <details>
+  <summary>小红书文案</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/xhstext"`
+
+  - [x] 捧场
+
+  - [x] 有梗
+
+</details>
+<details>
   <summary>游戏王白鸽API卡查</summary>
 
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/ygocdb"`
@@ -1594,9 +1613,9 @@ print("run[CQ:image,file="+j["img"]+"]")
 ### *低优先级*
 
 <details>
-  <summary>OpenAI聊天</summary>
+  <summary>大模型聊天和Agent配置</summary>
 
-  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichat"`
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichatcfg"`
 
   - [x] 设置AI聊天触发概率10
   - [x] 设置AI聊天温度80
@@ -1616,8 +1635,14 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 设置AI聊天(不)以AI语音输出
   - [x] 查看AI聊天配置 
   - [x] 重置AI聊天
-  - [x] 群聊总结 [消息数目]|群聊总结 1000
-  - [x] /gpt [内容]（使用大模型聊天）
+
+</details>
+<details>
+  <summary>大模型聊天和Agent</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/aichat"`
+
+  - [x] (随意聊天, 概率匹配)
 
 </details>
 <details>
