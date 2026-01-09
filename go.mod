@@ -12,7 +12,7 @@ require (
 	github.com/FloatTech/sqlite v1.7.2
 	github.com/FloatTech/ttl v0.0.0-20250224045156-012b1463287d
 	github.com/FloatTech/zbpctrl v1.7.1
-	github.com/FloatTech/zbputils v1.7.2-0.20260103151557-34c60f3591d5
+	github.com/FloatTech/zbputils v1.7.2-0.20260108160028-ff0902a05ebd
 	github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7
 	github.com/RomiChan/websocket v1.4.3-0.20251002072000-d3eb41798438
 	github.com/Tnze/go-mc v1.20.2
@@ -24,7 +24,7 @@ require (
 	github.com/fumiama/cron v1.3.0
 	github.com/fumiama/deepinfra v0.0.0-20251221163610-e98ee3ba437a
 	github.com/fumiama/go-base16384 v1.7.1
-	github.com/fumiama/go-onebot-agent v0.0.0-20260103153303-915960b3a069
+	github.com/fumiama/go-onebot-agent v0.0.0-20260106161505-f7d25272034c
 	github.com/fumiama/go-registry v0.2.7
 	github.com/fumiama/gotracemoe v0.0.3
 	github.com/fumiama/imgsz v0.0.4
@@ -47,7 +47,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tidwall/gjson v1.18.0
 	github.com/wcharczuk/go-chart/v2 v2.1.2
-	github.com/wdvxdr1123/ZeroBot v1.8.3-0.20260103120253-8a8f1347f983
+	github.com/wdvxdr1123/ZeroBot v1.8.3-0.20260108153355-cbf2ab0dd527
 	gitlab.com/gomidi/midi/v2 v2.3.18
 	golang.org/x/image v0.34.0
 	golang.org/x/sys v0.39.0
