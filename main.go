@@ -104,6 +104,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/gif"               // 制图
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/github"            // 搜索GitHub仓库
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/guessmusic"        // 猜歌
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/handou"            // 猜成语
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/hitokoto"          // 一言
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/hs"                // 炉石
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/hyaku"             // 百人一首
@@ -131,6 +132,7 @@ import (
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/nwife"             // 本地老婆
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/omikuji"           // 浅草寺求签
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/poker"             // 抽扑克
+	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/pig"				 // 来份猪猪
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/qqwife"            // 一群一天一夫一妻制群老婆
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/qzone"             // qq空间表白墙
 	_ "github.com/FloatTech/ZeroBot-Plugin/plugin/realcugan"         // realcugan清晰术

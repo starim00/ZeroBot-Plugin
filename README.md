@@ -655,6 +655,8 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] 齁语解密 [密文] 或 h解密 [密文]
   - [x] fumo加密 [文本]
   - [x] fumo解密 [文本]
+  - [x] qq加密 [文本]
+  - [x] qq解密 [密文]
 
 </details>
 <details>
@@ -844,6 +846,16 @@ print("run[CQ:image,file="+j["img"]+"]")
   - [x] [歌单名称]绑定网易云[网易云歌单链接/ID]
   - [x] 下载歌单[网易云歌单链接/ID]到[歌单名称]
   - [x] 解除绑定 [歌单名称]
+
+</details>
+<details>
+  <summary>猜成语</summary>
+
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/handou"`
+
+  - [x] 个人猜成语
+
+  - [x] 团队猜成语
 
 </details>
 <details>
@@ -1218,6 +1230,18 @@ print("run[CQ:image,file="+j["img"]+"]")
   `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/poker"`
 
   - [x] 抽扑克牌
+
+</details>
+<details>
+  <summary>来份猪猪</summary>
+  
+  `import _ "github.com/FloatTech/ZeroBot-Plugin/plugin/pig"`
+
+  - [x] 随机猪猪
+  
+  - [x] 搜索猪猪[猪名字]
+
+  - [x] 猪猪id[猪id]
 
 </details>
 <details>
