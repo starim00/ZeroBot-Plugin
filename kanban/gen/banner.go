@@ -42,9 +42,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s := strings.Split(vartag.String(), "\n")
+	tags := strings.Fields(vartag.String())
+	var version string
+	if len(tags) > 0 {
+		version = tags[len(tags)-1]
+	} else {
+		revision, err := exec.Command("git", "rev-parse", "--short", "HEAD").Output()
+		if err != nil {
+			panic(err)
+		}
+		version = "dev-" + strings.TrimSpace(string(revision))
+	}
 	now := time.Now()
-	_, err = fmt.Fprintf(f, banner, s[len(s)-2], now.Year(), now.Format(timeformat))
+	_, err = fmt.Fprintf(f, banner, version, now.Year(), now.Format(timeformat))
 	if err != nil {
 		panic(err)
 	}
