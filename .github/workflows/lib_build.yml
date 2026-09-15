@@ -1,6 +1,16 @@
 name: Build Library
 
 on:
+  workflow_dispatch:
+    inputs:
+      prefix:
+        description: Binary filename suffix
+        type: string
+        default: "zbp_"
+      upload_artifact:
+        description: Upload compiled binaries
+        type: boolean
+        default: true
   workflow_call:
     inputs:
       prefix:
